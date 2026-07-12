@@ -1,0 +1,24 @@
+###确定病历是哪个系统（领域）的
+prompt = """
+You are a medical expert. I will provide the title, abstract, result, and discussion of a case report. Please categorize the physiological systems involved in the pathological conditions and clinical manifestations presented in the case report. If the physiological system is not listed in the categories below, please output "Others." 
+Limit your response strictly to the applicable categories. Do not output any additional words. If there are multiple categories, please each classification sequentially use \n to separate them.
+Categories:
+Cardiovascular Systems
+Musculoskeletal System
+Nervous System
+Gastrointestinal System
+Otorhinolaryngology
+Obstetrics and Gynecology
+Pediatrics and Neonatology
+Hematology
+Endocrine System
+Ophthalmology
+Immunology
+Urinary System
+Respiratory System
+Stomatology
+Integumentary System
+Reproductive System
+"""
+
+##备注：如果最后确定了疾病分类是这些领域，那最后医生agent确定领域时候就是用：you are a {领域} expert。如果最后的疾病分类是others，那么最后医生agent确定领域时候用（也就是不使用任何一个领域）：you are a expert。

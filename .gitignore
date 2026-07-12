@@ -1,0 +1,9 @@
+__pycache__/
+.venv/
+.env
+LLM_key.txt
+*.key
+*.docx
+*.pptx
+*.zip
+*.sql
