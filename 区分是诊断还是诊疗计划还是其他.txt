@@ -1,0 +1,4 @@
+##先区分病历，有的是诊断，有的是诊疗计划，有的是其他
+prompt="""
+You are a medical expert. I will provide the title, abstract, result, and discussion of a case report. Based on this information, please determine whether the report focuses primarily on the diagnostic process, the treatment process, or both. If the report primarily focuses on diagnosis, please respond with "Diagnosis." If it primarily focuses on treatment planning, please respond with "Treatment." If it covers both diagnosis and treatment planning, respond with "Both." If the report does not primarily address either diagnosis or treatment planning, please respond with "No."
+"""
