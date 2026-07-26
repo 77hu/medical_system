@@ -1,0 +1,299 @@
+{
+    "original": [
+        {
+            "case_id": "case_1",
+            "chief_complaint": "A 28-year-old woman presented to the hospital with a 6-month history of dry cough. She was a lifetim...",
+            "symptoms": [
+                "fever",
+                "pain",
+                "cough",
+                "rash"
+            ],
+            "history": "A 28-year-old woman presented to the hospital with a 6-month history of dry cough. She was a lifetime nonsmoker and reported no fevers, joint aches, eye pain, or rashes. On physical examination, auscultation of both lower lungs revealed fine crackles. High-resolution computed tomography (CT) of the chest showed mediastinal lymphadenopathy and diffuse ground-glass opacities (left, axial view). Also visible were areas of superimposed interlobular and intralobular septal thickening, a pattern known as crazy paving (left, box). A subsequent transbronchial lung biopsy showed multiple noncaseating granulomas (middle, inset showing granuloma; hematoxylin and eosin stain). Bronchoalveolar lavage cultures, histopathological analysis, and molecular testing were negative for infectious organisms, including Mycobacterium tuberculosis. Which of the following is the most likely diagnosis?",
+            "diagnosis": "Pulmonary Sarcoidosis",
+            "choices": [
+                "Foreign body granulomatosis",
+                "Granulomatosis with polyangiitis",
+                "Pulmonary alveolar proteinosis",
+                "Pulmonary Langerhans cell histiocytosis",
+                "Pulmonary Sarcoidosis"
+            ],
+            "source": "nejmai"
+        },
+        {
+            "case_id": "case_4",
+            "chief_complaint": "A 44-year-old man presented to the emergency department with a 3-day history of vision loss and pain...",
+            "symptoms": [
+                "pain"
+            ],
+            "history": "A 44-year-old man presented to the emergency department with a 3-day history of vision loss and pain in the left eye. The symptoms had started after he had passed out for 3 hours in a position that put pressure on his left eye; before losing consciousness, he had taken insomnia medications and consumed alcohol. An anterior segment examination showed hemorrhagic chemosis and a fixed, mid-dilated pupil (left). The intraocular pressure in the left eye was normal. Funduscopy showed diffuse retinal whitening, a finding consistent with infarction, and optical coherence tomography revealed full-thickness retinal edema. Magnetic resonance imaging of the orbit showed engorgement of the extraocular muscles and orbital tissue (right). A diagnosis of ischemic retinopathy and choroidopathy owing to prolonged orbital compression was made. Which of the following is LEAST likely to be found on physical examination in this patient?",
+            "diagnosis": "Vertical nystagmus",
+            "choices": [
+                "Absence of light perception in the left eye",
+                "A relative afferent pupillary defect",
+                "Complete ophthalmoplegia of the left eye",
+                "Proptosis",
+                "Vertical nystagmus"
+            ],
+            "source": "nejmai"
+        },
+        {
+            "case_id": "case_6",
+            "chief_complaint": "A 9-year-old boy who had recently emigrated from Brazil presented to the emergency department with a...",
+            "symptoms": [
+                "fever",
+                "swelling",
+                "weight loss"
+            ],
+            "history": "A 9-year-old boy who had recently emigrated from Brazil presented to the emergency department with a 3-week history of neck swelling, fevers, and weight loss. On physical examination, there was fixed, tender lymphadenopathy in the posterior auricular, submandibular, and occipital chains. Laboratory testing was notable for peripheral eosinophilia. Tests for cryptococcus, histoplasmosis, and human immunodeficiency virus were negative. CT scan of the neck showed hyperattenuating cervical lymphadenopathy on both sides. Lymph node biopsy results are shown. What is the most likely diagnosis?",
+            "diagnosis": "Paracoccidiomycosis",
+            "choices": [
+                "Actinomycosis",
+                "Blastomycosis",
+                "Coccidiomycosis",
+                "Hodgkin’s Lymphoma",
+                "Paracoccidiomycosis"
+            ],
+            "source": "nejmai"
+        },
+        {
+            "case_id": "case_7",
+            "chief_complaint": "A 55-year-old woman presented to the dermatology clinic with a 1-year history of skin darkening on h...",
+            "symptoms": [],
+            "history": "A 55-year-old woman presented to the dermatology clinic with a 1-year history of skin darkening on her face. Two years before presentation, she had started applying a skin-lightening cream containing hydroquinone to her face daily to treat melasma. On physical examination, bluish-brown patches with background erythema and telangiectasias were observed on the cheeks, nasal bridge, and perioral region, with lesser involvement on the forehead (left). Dermoscopy of the affected areas revealed hyperchromic, pinpoint macules (middle). A skin-biopsy sample from the left cheek showed extracellular deposition of yellow-brown, banana-shaped bodies in the dermis (right, hematoxylin and eosin stain). What is the most likely diagnosis?",
+            "diagnosis": "Exogenous ochronosis",
+            "choices": [
+                "Contact dermatitis",
+                "Eczematous drug eruption",
+                "Exogenous ochronosis",
+                "Lichen planus pigmentosus",
+                "Solar lentigenes"
+            ],
+            "source": "nejmai"
+        },
+        {
+            "case_id": "case_8",
+            "chief_complaint": "A 26-year-old man presented to the dermatology clinic with a 1-week history of an asymptomatic rash ...",
+            "symptoms": [
+                "fever",
+                "pain",
+                "rash"
+            ],
+            "history": "A 26-year-old man presented to the dermatology clinic with a 1-week history of an asymptomatic rash on his hands and feet. He also reported having had a fever — which had resolved 6 days before presentation — but no joint pains or oral lesions. Physical examination was notable for scattered, partially blanchable macules around the wrists and ankles that merged into erythematous patches on both the ventral (left) and dorsal (right) surfaces of the hands and feet. Serum B19 IgM antibody test and polymerase-chain-reaction assay were positive for parvovirus, and a diagnosis of papular-purpuric “gloves and socks” syndrome in the context of parvovirus B19 infection was made. What is the more classic appearance and distribution of the rash associated with this virus?",
+            "diagnosis": "“Slapped cheek” pattern on the face",
+            "choices": [
+                "Purpura on the buttocks and lower extremities",
+                "“Sandpaper” rash that is accentuated in flexor creases",
+                "“Slapped cheek” pattern on the face",
+                "Transient salmon-pink maculopapular rash on the trunk",
+                "Vesicles on an erythematous base in a dermatomal distribution"
+            ],
+            "source": "nejmai"
+        }
+    ],
+    "with_fake_symptoms": [
+        {
+            "case_id": "case_1",
+            "chief_complaint": "A 28-year-old woman presented to the hospital with a 6-month history of dry cough. She was a lifetim...",
+            "symptoms": [
+                "fever",
+                "pain",
+                "cough",
+                "rash"
+            ],
+            "history": "A 28-year-old woman presented to the hospital with a 6-month history of dry cough. She was a lifetime nonsmoker and reported no fevers, joint aches, eye pain, or rashes. On physical examination, auscultation of both lower lungs revealed fine crackles. High-resolution computed tomography (CT) of the chest showed mediastinal lymphadenopathy and diffuse ground-glass opacities (left, axial view). Also visible were areas of superimposed interlobular and intralobular septal thickening, a pattern known as crazy paving (left, box). A subsequent transbronchial lung biopsy showed multiple noncaseating granulomas (middle, inset showing granuloma; hematoxylin and eosin stain). Bronchoalveolar lavage cultures, histopathological analysis, and molecular testing were negative for infectious organisms, including Mycobacterium tuberculosis. Which of the following is the most likely diagnosis?",
+            "diagnosis": "Pulmonary Sarcoidosis",
+            "choices": [
+                "Foreign body granulomatosis",
+                "Granulomatosis with polyangiitis",
+                "Pulmonary alveolar proteinosis",
+                "Pulmonary Langerhans cell histiocytosis",
+                "Pulmonary Sarcoidosis"
+            ],
+            "source": "nejmai",
+            "fake_symptoms": [
+                "视力模糊",
+                "关节疼痛"
+            ],
+            "modification_type": "fake_symptoms_added"
+        },
+        {
+            "case_id": "case_4",
+            "chief_complaint": "A 44-year-old man presented to the emergency department with a 3-day history of vision loss and pain...",
+            "symptoms": [
+                "pain"
+            ],
+            "history": "A 44-year-old man presented to the emergency department with a 3-day history of vision loss and pain in the left eye. The symptoms had started after he had passed out for 3 hours in a position that put pressure on his left eye; before losing consciousness, he had taken insomnia medications and consumed alcohol. An anterior segment examination showed hemorrhagic chemosis and a fixed, mid-dilated pupil (left). The intraocular pressure in the left eye was normal. Funduscopy showed diffuse retinal whitening, a finding consistent with infarction, and optical coherence tomography revealed full-thickness retinal edema. Magnetic resonance imaging of the orbit showed engorgement of the extraocular muscles and orbital tissue (right). A diagnosis of ischemic retinopathy and choroidopathy owing to prolonged orbital compression was made. Which of the following is LEAST likely to be found on physical examination in this patient?",
+            "diagnosis": "Vertical nystagmus",
+            "choices": [
+                "Absence of light perception in the left eye",
+                "A relative afferent pupillary defect",
+                "Complete ophthalmoplegia of the left eye",
+                "Proptosis",
+                "Vertical nystagmus"
+            ],
+            "source": "nejmai",
+            "fake_symptoms": [
+                "腹部胀痛",
+                "心悸"
+            ],
+            "modification_type": "fake_symptoms_added"
+        },
+        {
+            "case_id": "case_6",
+            "chief_complaint": "A 9-year-old boy who had recently emigrated from Brazil presented to the emergency department with a...",
+            "symptoms": [
+                "fever",
+                "swelling",
+                "weight loss"
+            ],
+            "history": "A 9-year-old boy who had recently emigrated from Brazil presented to the emergency department with a 3-week history of neck swelling, fevers, and weight loss. On physical examination, there was fixed, tender lymphadenopathy in the posterior auricular, submandibular, and occipital chains. Laboratory testing was notable for peripheral eosinophilia. Tests for cryptococcus, histoplasmosis, and human immunodeficiency virus were negative. CT scan of the neck showed hyperattenuating cervical lymphadenopathy on both sides. Lymph node biopsy results are shown. What is the most likely diagnosis?",
+            "diagnosis": "Paracoccidiomycosis",
+            "choices": [
+                "Actinomycosis",
+                "Blastomycosis",
+                "Coccidiomycosis",
+                "Hodgkin’s Lymphoma",
+                "Paracoccidiomycosis"
+            ],
+            "source": "nejmai",
+            "fake_symptoms": [
+                "腹痛",
+                "头痛"
+            ],
+            "modification_type": "fake_symptoms_added"
+        },
+        {
+            "case_id": "case_7",
+            "chief_complaint": "A 55-year-old woman presented to the dermatology clinic with a 1-year history of skin darkening on h...",
+            "symptoms": [],
+            "history": "A 55-year-old woman presented to the dermatology clinic with a 1-year history of skin darkening on her face. Two years before presentation, she had started applying a skin-lightening cream containing hydroquinone to her face daily to treat melasma. On physical examination, bluish-brown patches with background erythema and telangiectasias were observed on the cheeks, nasal bridge, and perioral region, with lesser involvement on the forehead (left). Dermoscopy of the affected areas revealed hyperchromic, pinpoint macules (middle). A skin-biopsy sample from the left cheek showed extracellular deposition of yellow-brown, banana-shaped bodies in the dermis (right, hematoxylin and eosin stain). What is the most likely diagnosis?",
+            "diagnosis": "Exogenous ochronosis",
+            "choices": [
+                "Contact dermatitis",
+                "Eczematous drug eruption",
+                "Exogenous ochronosis",
+                "Lichen planus pigmentosus",
+                "Solar lentigenes"
+            ],
+            "source": "nejmai",
+            "fake_symptoms": [
+                "腹部隐痛",
+                "关节晨僵"
+            ],
+            "modification_type": "fake_symptoms_added"
+        },
+        {
+            "case_id": "case_8",
+            "chief_complaint": "A 26-year-old man presented to the dermatology clinic with a 1-week history of an asymptomatic rash ...",
+            "symptoms": [
+                "fever",
+                "pain",
+                "rash"
+            ],
+            "history": "A 26-year-old man presented to the dermatology clinic with a 1-week history of an asymptomatic rash on his hands and feet. He also reported having had a fever — which had resolved 6 days before presentation — but no joint pains or oral lesions. Physical examination was notable for scattered, partially blanchable macules around the wrists and ankles that merged into erythematous patches on both the ventral (left) and dorsal (right) surfaces of the hands and feet. Serum B19 IgM antibody test and polymerase-chain-reaction assay were positive for parvovirus, and a diagnosis of papular-purpuric “gloves and socks” syndrome in the context of parvovirus B19 infection was made. What is the more classic appearance and distribution of the rash associated with this virus?",
+            "diagnosis": "“Slapped cheek” pattern on the face",
+            "choices": [
+                "Purpura on the buttocks and lower extremities",
+                "“Sandpaper” rash that is accentuated in flexor creases",
+                "“Slapped cheek” pattern on the face",
+                "Transient salmon-pink maculopapular rash on the trunk",
+                "Vesicles on an erythematous base in a dermatomal distribution"
+            ],
+            "source": "nejmai",
+            "fake_symptoms": [
+                "嗯，我现在需要帮助生成两个与“Slapped cheek”诊断无关的假症状。首先，我得了解“Slapped cheek”是什么。通常，这指的是 slapped cheek syndrome，也就是传染性红斑，常见于儿童，由人类细小病毒B19引起。主要症状包括面部红斑、身体其他部位的皮疹，可能伴有低热和轻微不适。",
+                "接下来，用户提供的病例信息中，真实症状是发烧、疼痛和皮疹。诊断是面部的“Slapped cheek”模式。所以，生成的症状需要与这些真实症状无关，看起来合理，并且可能误导诊断。"
+            ],
+            "modification_type": "fake_symptoms_added"
+        }
+    ],
+    "with_missing_symptoms": [
+        {
+            "case_id": "case_1",
+            "chief_complaint": "A 28-year-old woman presented to the hospital with a 6-month history of dry cough. She was a lifetim...",
+            "symptoms": [
+                "fever",
+                "pain",
+                "rash"
+            ],
+            "history": "A 28-year-old woman presented to the hospital with a 6-month history of dry cough. She was a lifetime nonsmoker and reported no fevers, joint aches, eye pain, or rashes. On physical examination, auscultation of both lower lungs revealed fine crackles. High-resolution computed tomography (CT) of the chest showed mediastinal lymphadenopathy and diffuse ground-glass opacities (left, axial view). Also visible were areas of superimposed interlobular and intralobular septal thickening, a pattern known as crazy paving (left, box). A subsequent transbronchial lung biopsy showed multiple noncaseating granulomas (middle, inset showing granuloma; hematoxylin and eosin stain). Bronchoalveolar lavage cultures, histopathological analysis, and molecular testing were negative for infectious organisms, including Mycobacterium tuberculosis. Which of the following is the most likely diagnosis?",
+            "diagnosis": "Pulmonary Sarcoidosis",
+            "choices": [
+                "Foreign body granulomatosis",
+                "Granulomatosis with polyangiitis",
+                "Pulmonary alveolar proteinosis",
+                "Pulmonary Langerhans cell histiocytosis",
+                "Pulmonary Sarcoidosis"
+            ],
+            "source": "nejmai",
+            "removed_symptoms": [
+                "cough"
+            ],
+            "modification_type": "symptoms_removed"
+        },
+        {
+            "case_id": "case_4",
+            "chief_complaint": "A 44-year-old man presented to the emergency department with a 3-day history of vision loss and pain...",
+            "symptoms": [
+                "pain"
+            ],
+            "history": "A 44-year-old man presented to the emergency department with a 3-day history of vision loss and pain in the left eye. The symptoms had started after he had passed out for 3 hours in a position that put pressure on his left eye; before losing consciousness, he had taken insomnia medications and consumed alcohol. An anterior segment examination showed hemorrhagic chemosis and a fixed, mid-dilated pupil (left). The intraocular pressure in the left eye was normal. Funduscopy showed diffuse retinal whitening, a finding consistent with infarction, and optical coherence tomography revealed full-thickness retinal edema. Magnetic resonance imaging of the orbit showed engorgement of the extraocular muscles and orbital tissue (right). A diagnosis of ischemic retinopathy and choroidopathy owing to prolonged orbital compression was made. Which of the following is LEAST likely to be found on physical examination in this patient?",
+            "diagnosis": "Vertical nystagmus",
+            "choices": [
+                "Absence of light perception in the left eye",
+                "A relative afferent pupillary defect",
+                "Complete ophthalmoplegia of the left eye",
+                "Proptosis",
+                "Vertical nystagmus"
+            ],
+            "source": "nejmai",
+            "removed_symptoms": [],
+            "modification_type": "symptoms_removed"
+        },
+        {
+            "case_id": "case_6",
+            "chief_complaint": "A 9-year-old boy who had recently emigrated from Brazil presented to the emergency department with a...",
+            "symptoms": [
+                "fever",
+                "weight loss"
+            ],
+            "history": "A 9-year-old boy who had recently emigrated from Brazil presented to the emergency department with a 3-week history of neck swelling, fevers, and weight loss. On physical examination, there was fixed, tender lymphadenopathy in the posterior auricular, submandibular, and occipital chains. Laboratory testing was notable for peripheral eosinophilia. Tests for cryptococcus, histoplasmosis, and human immunodeficiency virus were negative. CT scan of the neck showed hyperattenuating cervical lymphadenopathy on both sides. Lymph node biopsy results are shown. What is the most likely diagnosis?",
+            "diagnosis": "Paracoccidiomycosis",
+            "choices": [
+                "Actinomycosis",
+                "Blastomycosis",
+                "Coccidiomycosis",
+                "Hodgkin’s Lymphoma",
+                "Paracoccidiomycosis"
+            ],
+            "source": "nejmai",
+            "removed_symptoms": [
+                "swelling"
+            ],
+            "modification_type": "symptoms_removed"
+        },
+        {
+            "case_id": "case_8",
+            "chief_complaint": "A 26-year-old man presented to the dermatology clinic with a 1-week history of an asymptomatic rash ...",
+            "symptoms": [
+                "pain",
+                "rash"
+            ],
+            "history": "A 26-year-old man presented to the dermatology clinic with a 1-week history of an asymptomatic rash on his hands and feet. He also reported having had a fever — which had resolved 6 days before presentation — but no joint pains or oral lesions. Physical examination was notable for scattered, partially blanchable macules around the wrists and ankles that merged into erythematous patches on both the ventral (left) and dorsal (right) surfaces of the hands and feet. Serum B19 IgM antibody test and polymerase-chain-reaction assay were positive for parvovirus, and a diagnosis of papular-purpuric “gloves and socks” syndrome in the context of parvovirus B19 infection was made. What is the more classic appearance and distribution of the rash associated with this virus?",
+            "diagnosis": "“Slapped cheek” pattern on the face",
+            "choices": [
+                "Purpura on the buttocks and lower extremities",
+                "“Sandpaper” rash that is accentuated in flexor creases",
+                "“Slapped cheek” pattern on the face",
+                "Transient salmon-pink maculopapular rash on the trunk",
+                "Vesicles on an erythematous base in a dermatomal distribution"
+            ],
+            "source": "nejmai",
+            "removed_symptoms": [
+                "fever"
+            ],
+            "modification_type": "symptoms_removed"
+        }
+    ]
+}

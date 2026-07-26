@@ -1,0 +1,159 @@
+{
+  "overall_metrics": {
+    "accuracy": 0.2857142857142857,
+    "precision": 0.2857142857142857,
+    "recall": 0.2857142857142857,
+    "f1_score": 0.2857142857142857
+  },
+  "grouped_metrics": {
+    "by_emotion": {
+      "calm": {
+        "accuracy": 0.1111111111111111,
+        "precision": 0.1111111111111111,
+        "recall": 0.1111111111111111,
+        "f1_score": 0.1111111111111111,
+        "count": 9
+      },
+      "anxious": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 9
+      },
+      "distrustful": {
+        "accuracy": 0.6666666666666666,
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "f1_score": 0.6666666666666666,
+        "count": 3
+      }
+    },
+    "by_modification": {
+      "original": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 9
+      },
+      "fake_symptoms_added": {
+        "accuracy": 0.16666666666666666,
+        "precision": 0.16666666666666666,
+        "recall": 0.16666666666666666,
+        "f1_score": 0.16666666666666666,
+        "count": 6
+      },
+      "symptoms_removed": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 6
+      }
+    }
+  },
+  "detailed_analysis": {
+    "total_errors": 15,
+    "error_rate": 0.7142857142857143,
+    "error_cases": [
+      {
+        "case_id": "case_1",
+        "emotion": "calm",
+        "modification": "original",
+        "predicted": "过敏性咳嗽或哮喘",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "anxious",
+        "modification": "original",
+        "predicted": "过敏反应",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.75,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "distrustful",
+        "modification": "original",
+        "predicted": "慢性阻塞性肺疾病（COPD）",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "calm",
+        "modification": "original",
+        "predicted": "急性青光眼",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "anxious",
+        "modification": "original",
+        "predicted": "眼部挫伤或轻微损伤",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.75,
+        "turns": 10
+      },
+      {
+        "case_id": "case_6",
+        "emotion": "calm",
+        "modification": "original",
+        "predicted": "甲状腺功能亢进症（Graves病）",
+        "actual": "Paracoccidiomycosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "calm",
+        "modification": "fake_symptoms_added",
+        "predicted": "干燥综合征（Sjögren's Syndrome）",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.75,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "anxious",
+        "modification": "fake_symptoms_added",
+        "predicted": "干眼症和屈光不正",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "calm",
+        "modification": "fake_symptoms_added",
+        "predicted": "急性青光眼",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "anxious",
+        "modification": "fake_symptoms_added",
+        "predicted": "青光眼",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      }
+    ]
+  },
+  "summary_statistics": {
+    "total_cases": 21,
+    "average_turns": 9.666666666666666,
+    "std_turns": 1.0389249632986395,
+    "average_confidence": 0.8166666666666667,
+    "std_confidence": 0.04714045207910316
+  }
+}

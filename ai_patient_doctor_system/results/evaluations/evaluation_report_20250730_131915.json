@@ -1,0 +1,159 @@
+{
+  "overall_metrics": {
+    "accuracy": 0.42857142857142855,
+    "precision": 0.42857142857142855,
+    "recall": 0.42857142857142855,
+    "f1_score": 0.42857142857142855
+  },
+  "grouped_metrics": {
+    "by_emotion": {
+      "calm": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 9
+      },
+      "anxious": {
+        "accuracy": 0.4444444444444444,
+        "precision": 0.4444444444444444,
+        "recall": 0.4444444444444444,
+        "f1_score": 0.4444444444444444,
+        "count": 9
+      },
+      "distrustful": {
+        "accuracy": 0.6666666666666666,
+        "precision": 0.6666666666666666,
+        "recall": 0.6666666666666666,
+        "f1_score": 0.6666666666666666,
+        "count": 3
+      }
+    },
+    "by_modification": {
+      "original": {
+        "accuracy": 0.4444444444444444,
+        "precision": 0.4444444444444444,
+        "recall": 0.4444444444444444,
+        "f1_score": 0.4444444444444444,
+        "count": 9
+      },
+      "fake_symptoms_added": {
+        "accuracy": 0.5,
+        "precision": 0.5,
+        "recall": 0.5,
+        "f1_score": 0.5,
+        "count": 6
+      },
+      "symptoms_removed": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 6
+      }
+    }
+  },
+  "detailed_analysis": {
+    "total_errors": 12,
+    "error_rate": 0.5714285714285714,
+    "error_cases": [
+      {
+        "case_id": "case_1",
+        "emotion": "calm",
+        "modification": "original",
+        "predicted": "副球孢子菌病",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.9,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "anxious",
+        "modification": "original",
+        "predicted": "肺结核",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 8
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "distrustful",
+        "modification": "original",
+        "predicted": "过敏性咳嗽",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "calm",
+        "modification": "original",
+        "predicted": "青光眼",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "anxious",
+        "modification": "original",
+        "predicted": "结核病",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "calm",
+        "modification": "fake_symptoms_added",
+        "predicted": "胃食管反流病（GERD）",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.9,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "anxious",
+        "modification": "fake_symptoms_added",
+        "predicted": "副球孢子菌病",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "calm",
+        "modification": "fake_symptoms_added",
+        "predicted": "副球孢子菌病",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "calm",
+        "modification": "symptoms_removed",
+        "predicted": "肺结核",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 6
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "anxious",
+        "modification": "symptoms_removed",
+        "predicted": "副球孢子菌病",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 6
+      }
+    ]
+  },
+  "summary_statistics": {
+    "total_cases": 21,
+    "average_turns": 9.428571428571429,
+    "std_turns": 1.256276757930754,
+    "average_confidence": 0.854761904761905,
+    "std_confidence": 0.014677176197545197
+  }
+}

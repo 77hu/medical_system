@@ -1,0 +1,99 @@
+{
+  "timestamp": "2025-12-20T14:31:30.424011",
+  "summary": {
+    "total_tokens": 274415,
+    "total_time": 1619.3490438461304,
+    "total_calls": 117,
+    "total_conversations": 6,
+    "avg_tokens_per_conversation": 45735.833333333336,
+    "avg_time_per_conversation": 269.8915073076884,
+    "avg_calls_per_conversation": 19.5,
+    "overall_tokens_per_second": 169.46006856448594
+  },
+  "detailed_data": [
+    {
+      "case_id": "case_1",
+      "emotion": "calm",
+      "modification_type": "fake_symptoms_added",
+      "diagnosis_correct": false,
+      "total_tokens": 36234,
+      "total_time": 235.14676070213318,
+      "total_calls": 21,
+      "tokens_per_second": 154.09100211207502,
+      "doctor_tokens": 14732,
+      "patient_tokens": 21502,
+      "doctor_time": 163.87655806541443,
+      "patient_time": 71.27020263671875
+    },
+    {
+      "case_id": "case_1",
+      "emotion": "anxious",
+      "modification_type": "fake_symptoms_added",
+      "diagnosis_correct": false,
+      "total_tokens": 74305,
+      "total_time": 379.42259883880615,
+      "total_calls": 22,
+      "tokens_per_second": 195.83704351666128,
+      "doctor_tokens": 38888,
+      "patient_tokens": 35417,
+      "doctor_time": 270.68061351776123,
+      "patient_time": 108.74198532104492
+    },
+    {
+      "case_id": "case_4",
+      "emotion": "calm",
+      "modification_type": "fake_symptoms_added",
+      "diagnosis_correct": false,
+      "total_tokens": 51435,
+      "total_time": 302.7420017719269,
+      "total_calls": 21,
+      "tokens_per_second": 169.8971391447328,
+      "doctor_tokens": 23566,
+      "patient_tokens": 27869,
+      "doctor_time": 213.29876589775085,
+      "patient_time": 89.44323587417603
+    },
+    {
+      "case_id": "case_4",
+      "emotion": "anxious",
+      "modification_type": "fake_symptoms_added",
+      "diagnosis_correct": false,
+      "total_tokens": 56501,
+      "total_time": 373.80464935302734,
+      "total_calls": 22,
+      "tokens_per_second": 151.15114297746337,
+      "doctor_tokens": 30396,
+      "patient_tokens": 26105,
+      "doctor_time": 279.3945984840393,
+      "patient_time": 94.41005086898804
+    },
+    {
+      "case_id": "case_6",
+      "emotion": "calm",
+      "modification_type": "fake_symptoms_added",
+      "diagnosis_correct": true,
+      "total_tokens": 44692,
+      "total_time": 227.0206639766693,
+      "total_calls": 22,
+      "tokens_per_second": 196.8631366728491,
+      "doctor_tokens": 23298,
+      "patient_tokens": 21394,
+      "doctor_time": 161.77557706832886,
+      "patient_time": 65.24508690834045
+    },
+    {
+      "case_id": "case_6",
+      "emotion": "anxious",
+      "modification_type": "fake_symptoms_added",
+      "diagnosis_correct": true,
+      "total_tokens": 11248,
+      "total_time": 101.2123692035675,
+      "total_calls": 9,
+      "tokens_per_second": 111.1326618328339,
+      "doctor_tokens": 5119,
+      "patient_tokens": 6129,
+      "doctor_time": 72.85284447669983,
+      "patient_time": 28.359524726867676
+    }
+  ]
+}

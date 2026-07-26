@@ -1,0 +1,84 @@
+{
+  "overall_metrics": {
+    "accuracy": 0.3333333333333333,
+    "precision": 0.3333333333333333,
+    "recall": 0.3333333333333333,
+    "f1_score": 0.3333333333333333
+  },
+  "grouped_metrics": {
+    "by_emotion": {
+      "calm": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 3
+      },
+      "anxious": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 3
+      }
+    },
+    "by_modification": {
+      "fake_symptoms_added": {
+        "accuracy": 0.3333333333333333,
+        "precision": 0.3333333333333333,
+        "recall": 0.3333333333333333,
+        "f1_score": 0.3333333333333333,
+        "count": 6
+      }
+    }
+  },
+  "detailed_analysis": {
+    "total_errors": 4,
+    "error_rate": 0.6666666666666666,
+    "error_cases": [
+      {
+        "case_id": "case_1",
+        "emotion": "calm",
+        "modification": "fake_symptoms_added",
+        "predicted": "需要进一步检查",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.3,
+        "turns": 10
+      },
+      {
+        "case_id": "case_1",
+        "emotion": "anxious",
+        "modification": "fake_symptoms_added",
+        "predicted": "结核病",
+        "actual": "Pulmonary Sarcoidosis",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "calm",
+        "modification": "fake_symptoms_added",
+        "predicted": "疟疾",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      },
+      {
+        "case_id": "case_4",
+        "emotion": "anxious",
+        "modification": "fake_symptoms_added",
+        "predicted": "外伤导致的视网膜脱离或其他结构性损伤",
+        "actual": "Vertical nystagmus",
+        "confidence": 0.85,
+        "turns": 10
+      }
+    ]
+  },
+  "summary_statistics": {
+    "total_cases": 6,
+    "average_turns": 9.0,
+    "std_turns": 2.23606797749979,
+    "average_confidence": 0.7583333333333333,
+    "std_confidence": 0.20497289793748072
+  }
+}

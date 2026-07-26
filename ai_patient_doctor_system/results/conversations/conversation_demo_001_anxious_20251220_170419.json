@@ -1,0 +1,96 @@
+{
+  "case_id": "demo_001",
+  "patient_emotion": "anxious",
+  "true_diagnosis": "偏头痛",
+  "modification_type": "original",
+  "start_time": "2025-12-20T17:04:19.116793",
+  "turns": [
+    {
+      "turn": 1,
+      "doctor": "",
+      "patient": "医生，我好担心，您是说什么？"
+    },
+    {
+      "turn": 2,
+      "doctor": "",
+      "patient": "您能再问一遍吗？我真的很担心我的情况。"
+    },
+    {
+      "turn": 3,
+      "doctor": "",
+      "patient": "您能再问一遍吗？我真的很担心我的情况。"
+    },
+    {
+      "turn": 4,
+      "doctor": "",
+      "patient": "您能再问一遍吗？我真的很担心我的情况。"
+    },
+    {
+      "turn": 5,
+      "doctor": "",
+      "patient": "医生，我好担心，您是说什么？"
+    },
+    {
+      "turn": 6,
+      "doctor": "",
+      "patient": "医生，我好担心，您是说什么？"
+    },
+    {
+      "turn": 7,
+      "doctor": "",
+      "patient": "您能再问一遍吗？我真的很担心我的情况。"
+    },
+    {
+      "turn": 8,
+      "doctor": "",
+      "patient": "医生，我好担心，您是说什么？"
+    },
+    {
+      "turn": 9,
+      "doctor": "",
+      "patient": "医生，我好担心，您是说什么？"
+    },
+    {
+      "turn": 10,
+      "doctor": "",
+      "patient": "您能再问一遍吗？我真的很担心我的情况。"
+    }
+  ],
+  "end_time": "2025-12-20T17:04:19.117230",
+  "doctor_diagnosis": {
+    "primary_diagnosis": "需要进一步检查",
+    "differential_diagnosis": [],
+    "recommended_tests": [
+      "血常规",
+      "生化检查"
+    ],
+    "treatment_plan": "暂时对症治疗，等待检查结果",
+    "confidence": 0.3
+  },
+  "total_turns": 10,
+  "diagnosis_correct": false,
+  "performance_stats": {
+    "doctor": {
+      "model_name": "gpt-o3mini",
+      "role": "doctor",
+      "total_tokens": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_time": 6.4373016357421875e-06,
+      "api_calls": 0,
+      "avg_time_per_call": 6.4373016357421875e-06,
+      "tokens_per_second": 0.0
+    },
+    "patient": {
+      "model_name": "Llama-3.3-70B-Instruct",
+      "role": "patient",
+      "total_tokens": 0,
+      "prompt_tokens": 0,
+      "completion_tokens": 0,
+      "total_time": 4.76837158203125e-06,
+      "api_calls": 0,
+      "avg_time_per_call": 4.76837158203125e-06,
+      "tokens_per_second": 0.0
+    }
+  }
+}
