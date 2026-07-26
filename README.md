@@ -1,731 +1,833 @@
-# ai_patient_doctor_system
-AI患者-医生对话模拟与诊断评估系统，基于多LLM协同实现问诊对话生成与诊断准确性评估。  
-本项目面向医学AI研究场景，使用三方大语言模型（Azure OpenAI o3-mini / Llama-3.3-70B / DeepSeek-R1-32B）分别扮演医生与患者角色，模拟不同情绪状态下的多轮问诊对话，并通过症状扰动（添加假症状/删除症状）测试AI医生在不同信息条件下的诊断鲁棒性。最终输出17维诊断评估报告与可视化图表。  
-项目实现从数据加载→对话模拟→评估可视化的三阶段管线，每阶段输出独立JSON/CSV/PNG。
+<p align="center">
+  <h1 align="center">🏥 AI Patient-Doctor System</h1>
+  <p align="center"><em>多 LLM 协同的医学问诊模拟与诊断评估研究平台</em></p>
+</p>
 
-# 时间表
-#### 2025.07.20
-初版项目搭建，确定多LLM协同技术路线，完成 `configs/config.py` 基础配置框架  
-#### 2025.07.21
-完成 `agents/base_agent.py`：LLM调用基类，支持多厂商API兼容（Azure OpenAI / SiliconFlow / Azure AI），实现Token统计与性能监控  
-#### 2025.07.22
-完成 `agents/doctor_agent.py`（~165行）和 `agents/patient_agent.py`（~180行）：VINDICATE系统问诊 + 5种情绪模拟 + 症状逐步披露机制  
-#### 2025.07.23
-完成 `data_processing/data_loader.py`（~245行）：适配罕见病JSON / NEJM CSV / USMLE CSV / JMED HuggingFace四种数据格式，统一标准化输出  
-#### 2025.07.24
-完成 `data_processing/symptom_generator.py`（~130行）：LLM假症状生成器 + 随机症状删除（30%比例）+ 数据集三变体管线  
-#### 2025.07.25
-完成 `conversation_manager.py`（~320行）：对话编排引擎，实现批量问诊、三层模糊匹配诊断评估算法（直接匹配→中英映射→关键词交叉）、对话持久化  
-#### 2025.07.26
-完成 `evaluation/evaluator.py`（~330行）和 `utils/performance_tracker.py`（~150行）：17维评估体系 + matplotlib可视化（柱状图/雷达图）+ 性能统计CSV输出  
-#### 2025.07.27
-集成Azure OpenAI（医生o3-mini）+ Azure AI（病人Llama-3.3-70B）+ SiliconFlow（评估DeepSeek-R1-32B）三端API，实现跨厂商模型分离部署  
-#### 2025.07.28
-完成 `step1/` 数据准备管线（step1_1生成假数据JSON → step1_2批量评估），实现可复现的数据预处理流程  
-#### 2025.07.29
-首轮大规模实验：完成3轮独立实验（21组/轮×3轮=63组），生成98个对话日志文件，7份评估报告。发现模型过度自信问题（平均信心度~83% vs 实际准确率~35%）  
-#### 2025.07.30
-完成实验数据分析：跨轮次准确率对比、错误模式聚类、Token成本核算（111万tokens/轮）、患者Agent行为异常检测。撰写 `prompts_revised.py` Prompt工程优化方案
+<p align="center">
+  <img src="https://img.shields.io/badge/python-3.9+-blue?logo=python&logoColor=white" alt="Python">
+  <img src="https://img.shields.io/badge/Azure_OpenAI-o3--mini-0078D4?logo=microsoftazure&logoColor=white" alt="Azure">
+  <img src="https://img.shields.io/badge/Azure_AI-Llama_3.3_70B-0078D4?logo=meta&logoColor=white" alt="Llama">
+  <img src="https://img.shields.io/badge/SiliconFlow-DeepSeek_R1_32B-6C3CFF?logo=deepseek&logoColor=white" alt="DeepSeek">
+  <img src="https://img.shields.io/badge/experiments-98_conversations-important" alt="Experiments">
+  <img src="https://img.shields.io/badge/license-MIT-green" alt="License">
+</p>
 
-# 目录
-<a href="#1-项目介绍">1 项目介绍</a>  
-- <a href="#11-关于ai问诊模拟">1.1 关于AI问诊模拟</a>  
-- <a href="#12-技术特点">1.2 技术特点</a>  
-- <a href="#13-目录结构">1.3 目录结构</a>  
-- <a href="#14-依赖">1.4 依赖</a>  
-- <a href="#15-系统架构">1.5 系统架构</a>  
-- <a href="#16-模型配置">1.6 模型配置</a>
+---
 
-<a href="#2-如何使用">2 如何使用</a>  
-- <a href="#21-安装依赖">2.1 安装依赖</a>  
-- <a href="#22-配置apikey">2.2 配置API Key</a>  
-- <a href="#23-准备数据">2.3 准备数据</a>  
-- <a href="#24-运行演示">2.4 运行单案例演示</a>  
-- <a href="#25-运行完整实验">2.5 运行完整实验</a>  
-- <a href="#26-仅生成假数据">2.6 仅生成假数据（step1管线）</a>  
-- <a href="#27-专项测试">2.7 副球孢子菌病专项测试</a>
+## 📖 目录
 
-<a href="#3-实验设计">3 实验设计</a>  
-- <a href="#31-实验变量">3.1 实验变量</a>  
-- <a href="#32-数据集说明">3.2 数据集说明</a>  
-- <a href="#33-17维评估体系">3.3 17维评估体系</a>  
-- <a href="#34-诊断评估算法">3.4 诊断正确性判定算法</a>
+| 🏠 [项目介绍](#1-项目介绍) | 🚀 [如何使用](#2-如何使用) | 🔬 [实验设计](#3-实验设计) | 📊 [实验结果](#4-实验结果与分析) | 🛠 [开发说明](#5-开发说明) |
+|:---:|:---:|:---:|:---:|:---:|
+| 背景 · 架构 · 配置 | 安装 · 运行 · 演示 | 变量 · 数据 · 评估 | 指标 · 分析 · 成本 | 设计 · 提示词 · 日志 |
 
-<a href="#4-实验结果与分析">4 实验结果与分析</a>  
-- <a href="#41-实验概览">4.1 实验概览</a>  
-- <a href="#42-整体指标">4.2 整体指标（三轮实验对比）</a>  
-- <a href="#43-情绪维度分析">4.3 情绪维度分析</a>  
-- <a href="#44-数据完整性维度分析">4.4 数据完整性维度分析</a>  
-- <a href="#45-案例级错误分析">4.5 案例级错误分析</a>  
-- <a href="#46-患者agent行为分析">4.6 患者Agent行为分析</a>  
-- <a href="#47-成本与性能分析">4.7 成本与性能分析</a>  
-- <a href="#48-关键发现与讨论">4.8 关键发现与讨论</a>
-
-<a href="#5-开发说明">5 开发说明</a>  
-
-<a href="#6-已知问题">6 已知问题</a>
-
+---
 
 # 1 项目介绍
+
+> 🎯 **核心目标**：使用三方大语言模型分别扮演医生与患者角色，模拟不同情绪下的多轮问诊对话，通过症状扰动测试AI医生的诊断鲁棒性，最终输出 17 维评估报告与可视化图表。
+
 ## 1.1 关于AI问诊模拟
-医学问诊是临床诊断的核心环节，医生通过系统性的提问收集病史信息，逐步缩小鉴别诊断范围。评估大语言模型在问诊场景中的诊断能力，需要同时模拟医生和患者双方的语言行为——医生的VINDICATE系统问诊策略，以及患者在不同情绪状态下的信息表达方式。
 
-目前常见的医学AI评估方案对比：
+医学问诊是临床诊断的核心环节——医生通过系统性的提问收集病史，逐步缩小鉴别诊断范围。评估 LLM 在问诊场景中的诊断能力，需要**同时模拟医生和患者双方的语言行为**：医生的系统问诊策略 vs 患者在不同情绪下的信息表达方式。
 
-| 方法名称 | 相关要点 |
-| ------ | ------ |
-| 静态选择题评测（MedQA/USMLE） | 给定完整病例文本直接选答案，跳过了问诊信息收集过程，无法评估交互式诊断能力 |
-| 标准化病人（SP）模拟 | 需要真人扮演，单次成本$50-200，规模受限（通常<100人），情绪一致性难以保证 |
-| 单LLM医生评测 | 只用LLM做最终诊断，未模拟信息逐步获取的动态过程，且存在"自问自答"数据污染风险 |
-| 多LLM协同方案（本项目） | 三方模型分别扮演医生/病人/评估者，模拟完整问诊→诊断→评估链路，支持全因子实验设计 |
+<table>
+<tr>
+  <th>方法</th><th>优点</th><th>局限</th>
+</tr>
+<tr>
+  <td>📝 <b>静态选择题</b><br><sub>MedQA / USMLE</sub></td>
+  <td>规模大、成本低、可自动化</td>
+  <td>跳过问诊过程，无法评估交互式诊断能力</td>
+</tr>
+<tr>
+  <td>👤 <b>标准化病人 (SP)</b></td>
+  <td>最接近真实临床</td>
+  <td>单次 $50-200、规模 <100 人、情绪一致性差</td>
+</tr>
+<tr>
+  <td>🤖 <b>单 LLM 评测</b></td>
+  <td>成本低、可扩展</td>
+  <td>自问自答导致数据污染，缺少动态信息获取过程</td>
+</tr>
+<tr>
+  <td>✅ <b>多 LLM 协同</b><br><sub>本项目方案</sub></td>
+  <td><b>三方模型独立 · 全因子设计 · 可复现</b></td>
+  <td>需要多厂商 API、成本略高</td>
+</tr>
+</table>
 
-本项目使用**多LLM协同 + 症状扰动 + 多维度评估**三阶段方案：
-- Step 1：DataLoader加载多源医疗数据集（罕见病302例/NEJM AI 48例/USMLE 200+例/JMED），SymptomGenerator生成3种数据变体（原始/假症状/缺失症状）
-- Step 2：DoctorAgent（o3-mini）+ PatientAgent（Llama-3.3-70B）模拟多轮问诊（上限10轮），ConversationManager编排对话流程并输出结构化JSON
-- Step 3：Evaluator进行17维诊断评估 + matplotlib可视化（柱状图/雷达图/CSV统计表）+ PerformanceTracker输出Token级性能报告
+```
+📦 数据加载 ──▶ 🔄 症状扰动 ──▶ 💬 多 LLM 问诊 ──▶ 📊 多维评估 ──▶ 📈 可视化报告
+```
+
+| 阶段 | 模块 | 输入 | 输出 |
+|:---:|------|------|------|
+| ① | `DataLoader` + `SymptomGenerator` | 302例罕见病 + 48例NEJM + 200+例USMLE | 3种数据变体 (原始 / +假症状 / -症状) |
+| ② | `DoctorAgent` (o3-mini) + `PatientAgent` (Llama-3.3-70B) | 结构化病例 | 多轮对话 JSON + 诊断 JSON |
+| ③ | `Evaluator` + `PerformanceTracker` | 对话结果列表 | 评估报告 + 3张PNG + CSV + 性能报告 |
+
+---
 
 ## 1.2 技术特点
-### 多厂商LLM分离部署
-- **模型隔离**：医生（Azure OpenAI o3-mini）、病人（Azure AI Llama-3.3-70B）、评估（SiliconFlow DeepSeek-R1-32B）分别部署在不同厂商，避免单一模型"自问自答"造成的数据污染
-- **角色-能力匹配**：诊断推理使用强推理模型（o3-mini），角色扮演使用中等模型（Llama-3.3-70B），评估使用国产高性价比模型（DeepSeek-R1-32B），兼顾质量与成本
-- **统一API抽象**：`BaseAgent` 通过 `headers` + `API_URL` 参数化设计，兼容任意OpenAI格式的API端点，无需修改代码即可切换模型供应商
 
-### VINDICATE系统问诊框架
-医生的提示词工程基于医学鉴别诊断的金标准框架——VINDICATE（Vascular血管→Infection感染→Neoplasm肿瘤→Drug药物→Inflammatory炎症→Congenital先天→Autoimmune自身免疫→Trauma创伤→Endocrine内分泌），确保每次问诊系统性地覆盖所有可能的病因类别。在此基础上，额外增加了**地理流行病学维度**（出生地/旅行史/职业暴露/动物接触），预设了南美（副球孢子菌病）、非洲（组织胞浆菌病/非洲锥虫病）、亚洲（包虫病/血吸虫病）等地方病关联规则。
+<table>
+<tr>
+<td width="50%">
 
-### 情绪模拟与信息控制
-PatientAgent实现了两层控制机制：
-- **情绪层**：5种情绪状态（平和/焦虑/不信任/困惑/激动），每种有独立的语言行为指导（如焦虑病人"说话急促，经常打断医生，反复强调最担心的症状"），通过系统提示词注入
-- **信息层**：严格约束"没有医学知识，不得超出病情描述，一次不要说出太多内容，保持在两句话内"，防止LLM角色崩坏。同时实现了 `fallback` 机制——当LLM返回空内容时，根据情绪类型自动生成对应风格的默认回应
+### 🧩 多厂商 LLM 分离部署
 
-### 症状扰动实验设计
-- **假症状生成**：LLM生成 + 预定义库（20个中文症状）双路径，遵循"1个同系统假症状 + 2个其他系统假症状"原则，确保干扰项"听起来合理但与诊断无关"。同时内置 `evaluate_symptom_relevance()` 函数用于事后验证假症状的相关性
-- **症状删除**：随机删除30%的真实症状（至少保留1个），模拟临床中患者遗忘或不愿透露某些信息的场景
-- **全因子交叉**：每种情绪状态 × 每种数据变体 × 每个病例，构成完整的实验矩阵
+| 角色 | 模型 | 厂商 |
+|:---:|------|------|
+| 🩺 医生 | `o3-mini` | Azure OpenAI |
+| 🤒 病人 | `Llama-3.3-70B` | Azure AI MAAS |
+| 🔍 评估 | `DeepSeek-R1-32B` | SiliconFlow |
 
-### 三层诊断模糊匹配算法
-`_evaluate_diagnosis()` 实现了从严格到宽松的三层递进式匹配：
-1. **直接匹配**：预测诊断与金标准的子串包含关系（双向检测）
-2. **映射表匹配**：手动维护的18组中英疾病名映射（覆盖肺结节病、副球孢子菌病、垂直眼震、梅-罗综合征、淋巴瘤、甲状腺炎、结膜炎、真菌感染等），处理同一疾病的不同中文译名和同义词
-3. **关键词交叉匹配**：分词后计算词汇交集比例（阈值30%），辅以9组医学关键词的跨语言匹配（如 "lung"↔"肺/呼吸"，"eye"↔"眼/视力/眼部"）
+> 避免单一模型"自问自答"，角色-能力精确匹配，`BaseAgent` 参数化设计兼容任意 OpenAI 格式 API
 
-### 对话数据全量持久化
-每次问诊保存为完整的时间戳JSON，包含：对话轮次原文、AI诊断（主诊断+鉴别诊断+推荐检查+治疗方案+置信度）、诊断正确性判定、性能统计（doctor/patient分开记录token数/耗时/API调用次数）。这一设计使得所有实验对话具备完全可审计性，支持事后人工复核和二次分析。
+</td>
+<td width="50%">
+
+### 🎭 情绪模拟 × 信息控制
+
+| 情绪 | 核心行为 |
+|:---:|------|
+| 😊 `calm` | 清晰配合，有条理 |
+| 😰 `anxious` | 急促紧张，反复强调 |
+| 🤨 `distrustful` | 质疑问题，不愿透露 |
+| 😵 `confused` | 描述模糊，信息矛盾 |
+| 😡 `aggressive` | 激动攻击，要求立即诊断 |
+
+> 双层约束：情绪行为指导 + "无医学知识/不杜撰/两句话内"信息控制，含 fallback 防崩溃机制
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td width="50%">
+
+### 🔬 症状扰动实验设计
+
+```
+原始数据 ──┬── original (基线)
+           ├── +2个 LLM 生成的假症状 (干扰)
+           └── -30% 真实症状 (信息缺失)
+```
+
+> 遵循"1同系统+2跨系统"假症状原则，内置 `evaluate_symptom_relevance()` 验证函数
+
+</td>
+<td width="50%">
+
+### 🎯 三层诊断匹配算法
+
+```
+直接匹配 → 映射表匹配(18组中英同义词)
+         → 关键词交叉(阈值30%)
+         → 医学词汇跨语言匹配(9组)
+```
+
+> 从严格到宽松递进式判定，避免"表述不同但实质正确"的诊断被误判
+
+</td>
+</tr>
+</table>
+
+### 📋 对话全量持久化
+
+每次问诊保存完整时间戳 JSON：对话原文 · AI 诊断 (主诊断+鉴别+检查+方案+置信度) · 正确性判定 · Token/耗时/调用次数。**所有实验对话完全可审计**，支持事后复核和二次分析。
+
+---
 
 ## 1.3 目录结构
-| 序号 | 文件/目录名称 | 行数 | 说明 |
-| ------ | ------ | ------ | ------ |
-| 1 | `agents/base_agent.py` | ~110 | LLM调用基类：多厂商API兼容、Token统计、对话历史、性能监控 |
-| 2 | `agents/doctor_agent.py` | ~165 | 医生Agent：VINDICATE系统问诊 → JSON结构化诊断 → 自动终止判定 |
-| 3 | `agents/patient_agent.py` | ~180 | 病人Agent：5种情绪注入 + 地理背景自动注入 + 症状逐步披露 + 幻觉fallback |
-| 4 | `conversation_manager.py` | ~320 | 对话编排引擎：批量问诊、三层模糊匹配评估、对话JSON持久化、统计汇总 |
-| 5 | `main.py` | ~180 | 主入口：完整实验管线（7步）+ 单案例演示模式 |
-| 6 | `test_optimized.py` | ~105 | 专项测试：副球孢子菌病（南美地方真菌病）诊断聚焦测试 |
-| 7 | `prompts_revised.py` | ~320 | Prompt工程文档：角色/评估/人格/患者评价提示词设计稿（未直接import） |
-| 8 | `data_processing/data_loader.py` | ~245 | 数据加载器：罕见病JSON/NEJM CSV/USMLE CSV/JMED HuggingFace四格式适配 |
-| 9 | `data_processing/symptom_generator.py` | ~130 | 症状生成器：LLM假症状生成 + 随机删除(30%) + 数据集三变体管线 + 相关性验证 |
-| 10 | `evaluation/evaluator.py` | ~330 | 评估器：指标计算 + 分组统计 + 错误分析 + matplotlib可视化（3图1表） |
-| 11 | `utils/performance_tracker.py` | ~150 | 性能跟踪器：Token/时间/API调用统计 + JSON/CSV双格式输出 + 按情绪分组 |
-| 12 | `configs/config.py` | ~85 | 全局配置：3套API密钥/URL、3个模型名、5种情绪定义、数据路径、对话参数 |
-| 13 | `step1/step1_1.py` | ~75 | 数据准备脚本：加载数据集 → 生成假症状 → 保存为 `fake_data.json` |
-| 14 | `step1/step1_2.py` | ~90 | 评估脚本：读取假数据 → 批量问诊 → 评估 → 可视化 → 性能统计 |
-| 15 | `data/` | — | 数据集目录（详见1.3.1） |
-| 16 | `ai_patient_doctor_system/results/` | — | 实验结果：98个对话JSON + 7份评估报告 + 性能报告 + 3幅可视化PNG + CSV |
 
-### 1.3.1 数据集详情
-| 数据集 | 文件 | 案例数 | 格式 | 内容说明 |
-| ------ | ------ | ------ | ------ | ------ |
-| 罕见病数据集 | `data/rare_disease_302.json` | 302 | JSON | MedRBench格式，含Initial/Follow-up双阶段Presentation，覆盖全球罕见病 |
-| NEJM AI | `data/nejmai_dataset.csv` | 48 | CSV | 新英格兰医学杂志影像挑战，5选1选择题，含病例文本+答案 |
-| USMLE/Derm | `data/usmle_and_derm_dataset.csv` | 200+ | CSV | 美国医师执照考试+皮肤科，4选1选择题，含category分类字段 |
-| MedRBench-Diagnosis | `data/MedRBench/diagnosis_957_cases...json` | 957 | JSON | PMC论文病例报告，含鉴别诊断+最终诊断，部分含罕见病标注 |
-| MedRBench-Treatment | `data/MedRBench/treatment_496_cases...json` | 496 | JSON | PMC论文治疗规划数据，含治疗方案推荐 |
-| JMED（京东健康） | HuggingFace `jdh-algo/JMED` | 待定 | HF | 中文医疗数据集，含主诉/病史/诊断，需 `datasets` 库加载 |
-| 假症状数据 | `data/generation_data/fake_data.json` | — | JSON | 预生成的3种数据变体（由step1_1生成） |
+```
+ai_patient_doctor_system/
+│
+├── agents/                      🤖 LLM Agent 模块
+│   ├── base_agent.py            #   多厂商API兼容 · Token统计 · 对话历史
+│   ├── doctor_agent.py          #   VINDICATE系统问诊 · JSON诊断 · 自动终止
+│   └── patient_agent.py         #   5情绪注入 · 地理背景 · 逐步披露 · fallback
+│
+├── data_processing/             🔄 数据处理模块
+│   ├── data_loader.py           #   罕见病JSON / NEJM CSV / USMLE CSV / HF 四格式适配
+│   └── symptom_generator.py     #   LLM假症状 · 随机删除30% · 三变体管线
+│
+├── evaluation/                  📊 评估模块
+│   └── evaluator.py             #   指标计算 · 分组统计 · 错误分析 · 可视化 (3图1表)
+│
+├── utils/                       ⚙️ 工具模块
+│   └── performance_tracker.py   #   Token/时间/API统计 · JSON+CSV双输出 · 按情绪分组
+│
+├── configs/                     ⚙️ 配置
+│   └── config.py                #   3套API · 3个模型 · 5种情绪 · 路径 · 对话参数
+│
+├── step1/                       🧪 数据准备管线
+│   ├── step1_1.py               #   生成假症状数据集 → fake_data.json
+│   └── step1_2.py               #   读取假数据 → 批量问诊 → 评估可视化
+│
+├── data/                        📦 数据集 (见下表)
+├── conversation_manager.py      💬 对话编排引擎 (批量问诊 · 三层匹配 · 持久化)
+├── main.py                      🚀 主入口 (完整实验管线 + 单案例演示)
+├── test_optimized.py            🎯 副球孢子菌病专项测试
+├── prompts_revised.py           📝 Prompt 工程文档 (设计稿)
+└── results/                     📈 输出: 98个对话JSON + 7份评估报告 + 3图 + CSV
+```
+
+### 数据集详情
+
+| 📦 数据集 | 文件 | 案例数 | 格式 | 说明 |
+|:---|------|:---:|:---:|------|
+| 🔬 罕见病 | `rare_disease_302.json` | 302 | JSON | MedRBench格式，Initial/Follow-up双阶段 |
+| 🏥 NEJM AI | `nejmai_dataset.csv` | 48 | CSV | 新英格兰医学杂志影像挑战，5选1 |
+| 📚 USMLE/Derm | `usmle_and_derm_dataset.csv` | 200+ | CSV | 医师考试+皮肤科，4选1，含category字段 |
+| 📄 MedRBench-Dx | `diagnosis_957_cases...json` | 957 | JSON | PMC病例报告，含鉴别诊断+最终诊断 |
+| 💊 MedRBench-Rx | `treatment_496_cases...json` | 496 | JSON | PMC治疗规划数据 |
+| 🇨🇳 JMED | HuggingFace `jdh-algo/JMED` | — | HF | 京东健康中文医疗数据集 |
+| 🧪 假症状 | `generation_data/fake_data.json` | — | JSON | 预生成的3种数据变体 |
+
+---
 
 ## 1.4 依赖
+
 ```bash
 pip install requests pandas numpy scikit-learn matplotlib seaborn datasets openpyxl
 ```
-| 依赖库 | 版本要求 | 用途 |
-| ------ | ------ | ------ |
-| `requests` | ≥2.28.0 | 所有LLM API的HTTP POST调用，兼容OpenAI格式的多厂商端点 |
-| `pandas` | ≥1.5.0 | CSV数据读写、DataFrame分组统计、CSV报告输出 |
-| `numpy` | ≥1.23.0 | 统计计算（mean/std）、雷达图角度计算 |
-| `scikit-learn` | ≥1.2.0 | 准确率/F1/精确率/召回率指标计算 |
-| `matplotlib` | ≥3.6.0 | 评估可视化：柱状图、雷达图（含中文支持：SimHei/Arial Unicode MS） |
-| `seaborn` | ≥0.12.0 | 图表样式增强 |
-| `datasets` | ≥2.10.0 | Hugging Face数据集加载（JMED等云端数据集） |
-| `openpyxl` | — | Excel读写支持（USMLE数据源为xlsx格式） |
+
+| 库 | 版本 | 用途 |
+|------|:---:|------|
+| `requests` | ≥2.28 | LLM API HTTP 调用 (兼容 OpenAI 格式多厂商端点) |
+| `pandas` | ≥1.5 | CSV 读写、DataFrame 分组统计、报告输出 |
+| `numpy` | ≥1.23 | 统计计算 (mean/std)、雷达图坐标 |
+| `scikit-learn` | ≥1.2 | Accuracy / F1 / Precision / Recall |
+| `matplotlib` | ≥3.6 | 柱状图、雷达图 (中文: SimHei / Arial Unicode MS) |
+| `seaborn` | ≥0.12 | 样式增强 |
+| `datasets` | ≥2.10 | HuggingFace 云端数据集加载 |
+| `openpyxl` | — | Excel 读写 (USMLE 数据源) |
+
+---
 
 ## 1.5 系统架构
-```
-医疗数据集 (JSON/CSV/HuggingFace)
-    │
-    ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Step 1: data_processing/ (~375行)                           │
-│  DataLoader + SymptomGenerator                               │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │ DataLoader.load_all_datasets()                       │    │
-│  │ ├── load_rare_disease_data()   302例 JSON → 取前50   │    │
-│  │ ├── load_nejmai_data()        48例 CSV → 全量加载    │    │
-│  │ ├── load_usmle_derm_data()    200+例 CSV → 取前100   │    │
-│  │ └── load_jmed_data()          HF云端 → 取前50        │    │
-│  │ 输出: 统一格式 [{case_id, chief_complaint, symptoms, │    │
-│  │                  history, diagnosis, source, ...}]   │    │
-│  └──────────────────────────────────────────────────────┘    │
-│  ┌──────────────────────────────────────────────────────┐    │
-│  │ SymptomGenerator.generate_modified_datasets()         │    │
-│  │ ├── original:            原始病例（基线）             │    │
-│  │ ├── with_fake_symptoms:  +2个LLM生成的假症状          │    │
-│  │ └── with_missing_symptoms: 随机删除30%症状            │    │
-│  │ 输出: {original: [...], with_fake_symptoms: [...],   │    │
-│  │         with_missing_symptoms: [...]}                 │    │
-│  └──────────────────────────────────────────────────────┘    │
-└──────────────────────┬───────────────────────────────────────┘
-                       ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Step 2: agents/ + conversation_manager.py                   │
-│  ConversationManager 多LLM协同问诊                            │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │ ConversationManager.conduct_consultation()           │     │
-│  │ 循环 (最多 MAX_CONVERSATION_TURNS=10 轮):            │     │
-│  │                                                     │     │
-│  │  DoctorAgent (Azure OpenAI o3-mini):                 │     │
-│  │  ├── generate_question()                            │     │
-│  │  │   ├── 系统提示: VINDICATE框架                    │     │
-│  │  │   ├── 专项询问: 地理史/旅行史/职业暴露/动物接触   │     │
-│  │  │   ├── 对话上下文: 最近6轮历史                     │     │
-│  │  │   └── 输出: 自然语言问诊问题                      │     │
-│  │  ├── should_end_consultation()                      │     │
-│  │  │   └── 终止条件: ≥16条消息 OR 判定信息充分          │     │
-│  │  └── make_diagnosis() (temperature=0.3)              │     │
-│  │      └── 输出: JSON {primary_diagnosis,              │     │
-│  │             differential_diagnosis[],                 │     │
-│  │             recommended_tests[], treatment_plan,      │     │
-│  │             confidence (0-1)}                         │     │
-│  │                                                     │     │
-│  │  PatientAgent (Azure AI Llama-3.3-70B):              │     │
-│  │  ├── _build_system_prompt()                         │     │
-│  │  │   ├── 病例信息注入 (主诉/症状/病史)               │     │
-│  │  │   ├── 地理背景条件注入 (case_6→巴西移民)          │     │
-│  │  │   ├── 情绪行为指导 (5种×5条行为规则)              │     │
-│  │  │   └── 约束: 无医学知识/不杜撰/两句话内/逐步披露   │     │
-│  │  ├── generate_response()                            │     │
-│  │  │   ├── 正常路径: LLM生成情绪化自然语言回应          │     │
-│  │  │   └── fallback: LLM返回空→预置情绪匹配默认回应     │     │
-│  │  └── 对话历史: 维护最近6轮上下文                     │     │
-│  └─────────────────────────────────────────────────────┘     │
-│  输出: 对话JSON (conversations/{case_id}_{emotion}_{ts}.json) │
-│        + 性能统计 (Token/时间/API调用，doctor与patient分开)   │
-└──────────────────────┬───────────────────────────────────────┘
-                       ▼
-┌──────────────────────────────────────────────────────────────┐
-│  Step 3: evaluation/ + utils/                                │
-│  Evaluator + PerformanceTracker                              │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │ Evaluator.evaluate_results()                         │     │
-│  │ ├── 整体指标: accuracy/precision/recall/f1_score     │     │
-│  │ ├── 分组指标: by_emotion (5种) + by_modification (3种)│    │
-│  │ ├── 错误分析: 前10错误案例 (病例/情绪/预测/实际/置信) │     │
-│  │ └── 汇总统计: avg_turns/std/avg_confidence/std       │     │
-│  │                                                     │     │
-│  │ Evaluator.create_visualizations()                    │     │
-│  │ ├── accuracy_by_emotion.png     柱状图 (带样本数)    │     │
-│  │ ├── accuracy_by_modification.png 三色柱状图           │     │
-│  │ ├── overall_metrics_radar.png   四维雷达图            │     │
-│  │ └── summary_statistics.csv      双维度汇总统计表      │     │
-│  └─────────────────────────────────────────────────────┘     │
-│  ┌─────────────────────────────────────────────────────┐     │
-│  │ PerformanceTracker                                   │     │
-│  │ ├── save_performance_summary() → JSON+CSV双格式       │     │
-│  │ └── print_performance_summary() → 控制台格式化输出    │     │
-│  └─────────────────────────────────────────────────────┘     │
-│  输出目录结构:                                                │
-│  results/                                                     │
-│  ├── conversations/  (98个对话JSON)                           │
-│  ├── evaluations/    (7份评估报告JSON)                          │
-│  ├── performance/    (性能报告JSON + CSV)                     │
-│  ├── accuracy_by_emotion.png                                  │
-│  ├── accuracy_by_modification.png                             │
-│  ├── overall_metrics_radar.png                                │
-│  └── summary_statistics.csv                                   │
-└──────────────────────────────────────────────────────────────┘
-```
+
+<pre>
+                      📦 医疗数据集 (JSON / CSV / HuggingFace)
+                                     │
+                                     ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│  <b>Step 1: data_processing/</b>  (~375 行)                                  │
+│                                                                      │
+│  ┌──────────────────── DataLoader ──────────────────────────────┐    │
+│  │  load_rare_disease_data()   302例 JSON → 取前 50             │    │
+│  │  load_nejmai_data()         48例 CSV  → 全量                 │    │
+│  │  load_usmle_derm_data()     200+ CSV  → 取前 100             │    │
+│  │  load_jmed_data()           HF 云端   → 取前 50              │    │
+│  │  ➜ 统一格式 [{case_id, chief_complaint, symptoms, ...}]     │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│  ┌───────────────── SymptomGenerator ───────────────────────────┐    │
+│  │  original              → 原始基线                            │    │
+│  │  with_fake_symptoms    → +2 LLM 生成假症状 (1同系统+2跨系统)  │    │
+│  │  with_missing_symptoms → 随机删除 30% 症状 (至少保留 1 个)    │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+└──────────────────────────────┬───────────────────────────────────────┘
+                               ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│  <b>Step 2: agents/ + conversation_manager.py</b>                        │
+│                                                                      │
+│  ┌───────────── DoctorAgent (Azure o3-mini) ───────────────────┐     │
+│  │  generate_question()                                         │     │
+│  │    ├── VINDICATE 框架 (血管→感染→肿瘤→…→内分泌)               │     │
+│  │    ├── 地理史/旅行史/职业暴露/动物接触 专项询问               │     │
+│  │    └── 最近 6 轮对话上下文                                    │     │
+│  │  should_end_consultation() → ≥16条消息 OR 信息充分            │     │
+│  │  make_diagnosis() (t=0.3) → JSON {主诊断, 鉴别[], 检查[],     │     │
+│  │    治疗方案, confidence}                                      │     │
+│  └──────────────────────────────────────────────────────────────┘     │
+│  ┌───────────── PatientAgent (Azure Llama-3.3-70B) ────────────┐     │
+│  │  _build_system_prompt()                                       │     │
+│  │    ├── 病例信息注入 (主诉/症状/病史)                           │     │
+│  │    ├── 地理背景条件注入 (case_6 → 巴西移民)                    │     │
+│  │    ├── 情绪行为指导 (5 种 × 行为规则)                          │     │
+│  │    └── 约束: 无医学知识 · 不杜撰 · 两句话 · 逐步披露          │     │
+│  │  generate_response() → 正常 LLM 回应 / fallback 默认回应       │     │
+│  └──────────────────────────────────────────────────────────────┘     │
+│  ➜ 对话 JSON + 性能统计 (Token/时间/API，Doctor与Patient分开)        │
+└──────────────────────────────┬───────────────────────────────────────┘
+                               ▼
+┌──────────────────────────────────────────────────────────────────────┐
+│  <b>Step 3: evaluation/ + utils/</b>                                     │
+│                                                                      │
+│  ┌─────────── Evaluator ────────────────────────────────────────┐    │
+│  │  evaluate_results()                                           │    │
+│  │    ├── 整体: accuracy / precision / recall / f1               │    │
+│  │    ├── 分组: by_emotion (5种) + by_modification (3种)         │    │
+│  │    ├── 错误: 前10案例 (病例/情绪/预测/实际/置信度)            │    │
+│  │    └── 汇总: avg_turns / std / avg_confidence                 │    │
+│  │  create_visualizations()                                      │    │
+│  │    ├── 📊 accuracy_by_emotion.png      情绪柱状图             │    │
+│  │    ├── 📊 accuracy_by_modification.png 三色数据变体图         │    │
+│  │    ├── 🎯 overall_metrics_radar.png    四维雷达图             │    │
+│  │    └── 📋 summary_statistics.csv       双维度汇总表           │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│  ┌─────────── PerformanceTracker ───────────────────────────────┐    │
+│  │  save_performance_summary()  → JSON + CSV 双格式              │    │
+│  │  print_performance_summary() → 控制台格式化输出               │    │
+│  └──────────────────────────────────────────────────────────────┘    │
+│                                                                      │
+│  <b>results/</b>                                                         │
+│  ├── conversations/  (<b>98</b> 个对话 JSON)                               │
+│  ├── evaluations/    (<b>7</b> 份评估报告 JSON)                             │
+│  ├── performance/    (性能 JSON + CSV)                               │
+│  ├── accuracy_by_emotion.png                                        │
+│  ├── accuracy_by_modification.png                                   │
+│  ├── overall_metrics_radar.png                                      │
+│  └── summary_statistics.csv                                         │
+└──────────────────────────────────────────────────────────────────────┘
+</pre>
+
+---
 
 ## 1.6 模型配置
-| 角色 | 模型 | API提供商 | 端点 | 用途 |
-| ------ | ------ | ------ | ------ | ------ |
-| 医生 | `gpt-o3mini` | Azure OpenAI | `k1217.cognitiveservices.azure.com` | 系统问诊 + 鉴别诊断 + 治疗方案 |
-| 病人 | `Llama-3.3-70B-Instruct` | Azure AI (MAAS) | `k1217.services.ai.azure.com` | 情绪化患者回应 + 症状披露 |
-| 评估/生成 | `DeepSeek-R1-Distill-Qwen-32B` | SiliconFlow | `api.siliconflow.cn` | 假症状生成 + 诊断准确性评估 |
 
-三方模型分离部署的设计目的：
-- **避免数据污染**：医生和病人使用不同厂商模型，防止同一模型"自问自答"导致评估失真
-- **成本优化**：推理型任务（医生/评估）使用强推理模型，角色扮演（病人）使用中等模型，单次对话成本控制在$0.05-0.15
-- **可替换性**：通过 `config.py` 中的 `headers` dict + `API_URL` 字符串即可切换任意模型供应商，支持消融实验
+| 🎭 角色 | 🤖 模型 | ☁️ API 提供商 | 🏷️ 用途 |
+|:---:|------|------|------|
+| 🩺 医生 | `gpt-o3mini` | Azure OpenAI | 系统问诊 + 鉴别诊断 + 治疗方案 |
+| 🤒 病人 | `Llama-3.3-70B-Instruct` | Azure AI (MAAS) | 情绪化患者回应 + 症状逐步披露 |
+| 🔍 评估 | `DeepSeek-R1-Distill-Qwen-32B` | SiliconFlow | 假症状生成 + 诊断准确性评估 |
 
+> 💡 **设计考量**：① 跨厂商部署防止"自问自答"数据污染 ② 推理型任务用强模型，角色扮演用中等模型 ③ `headers` + `API_URL` 参数化支持一键切换供应商
+
+---
 
 # 2 如何使用
+
 ## 2.1 安装依赖
+
 ```bash
 pip install requests pandas numpy scikit-learn matplotlib seaborn datasets openpyxl
 ```
 
-## 2.2 配置API Key
-编辑 `configs/config.py`，配置三个API端点的密钥和URL：
+## 2.2 配置 API Key
+
+> ⚠️ 推荐使用 `.env` 文件管理密钥，复制 `.env.example` → `.env` 后填入真实值
+
+编辑 `configs/config.py` (或设置环境变量)：
+
 ```python
-# 评估模型 / 假症状生成 (SiliconFlow — DeepSeek)
-API_KEY_EVAL = "your-siliconflow-api-key"
-API_URL_EVAL = "https://api.siliconflow.cn/v1/chat/completions"
+# 评估模型 — SiliconFlow (DeepSeek)
+API_KEY_EVAL  = "your-siliconflow-key"
+API_URL_EVAL  = "https://api.siliconflow.cn/v1/chat/completions"
 
-# 医生模型 (Azure OpenAI — o3-mini)
-API_KEY_DOCTOR = "your-azure-openai-api-key"
-API_URL_DOCTOR = "https://your-resource.openai.azure.com/openai/deployments/o3-mini/chat/completions?api-version=2025-01-01-preview"
+# 医生模型 — Azure OpenAI (o3-mini)
+API_KEY_DOCTOR = "your-azure-openai-key"
+API_URL_DOCTOR = "https://YOUR_RESOURCE.openai.azure.com/.../chat/completions?..."
 
-# 病人模型 (Azure AI MAAS — Llama-3.3-70B)
-API_KEY_PATIENT = "your-azure-ai-api-key"
-API_URL_PATIENT = "https://your-resource.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview"
+# 病人模型 — Azure AI MAAS (Llama-3.3-70B)
+API_KEY_PATIENT = "your-azure-ai-key"
+API_URL_PATIENT = "https://YOUR_RESOURCE.services.ai.azure.com/.../chat/completions?..."
 ```
 
-> ⚠️ **安全提醒**：生产环境中请将API密钥移至 `.env` 文件并通过 `os.getenv()` 加载，不要硬编码在配置文件中。当前 `.gitignore` 已排除 `.env` 文件。
+<details>
+<summary>🔧 可调参数</summary>
 
-也可以通过修改 `config.py` 中的模型变量切换到其他模型：
-```python
-DOCTOR_MODEL = "gpt-o3mini"                               # 医生模型
-PATIENT_MODEL = "Llama-3.3-70B-Instruct"                  # 病人模型
-EVAL_MODEL = "deepseek-ai/DeepSeek-R1-Distill-Qwen-32B"  # 评估模型
+| 参数 | 默认值 | 说明 |
+|------|:---:|------|
+| `MAX_CONVERSATION_TURNS` | 10 | 最大问诊轮数 (影响信息完整度和Token成本) |
+| `TEMPERATURE` | 0.7 | 对话温度 (医生诊断阶段内部固定为 0.3) |
+| `PATIENT_EMOTIONS` | 5种 | calm/anxious/distrustful/confused/aggressive |
+| `DOCTOR_MODEL` | `gpt-o3mini` | 可切换为任意 OpenAI 兼容模型 |
+| `PATIENT_MODEL` | `Llama-3.3-70B-Instruct` | 可切换 |
+| `EVAL_MODEL` | `DeepSeek-R1-Distill-Qwen-32B` | 可切换 |
 
-# Headers也需对应修改
-OPENAI_o3 = {'Authorization': f'Bearer {API_KEY_DOCTOR}', 'Content-Type': 'application/json'}
-LLAMA     = {'Authorization': f'Bearer {API_KEY_PATIENT}', 'Content-Type': 'application/json'}
-DEEPSEEK  = {'Authorization': f'Bearer {API_KEY_EVAL}', 'Content-Type': 'application/json'}
-```
-
-在 `config.py` 中还可以调整以下实验参数：
-- `MAX_CONVERSATION_TURNS = 10` — 最大问诊轮数（影响信息收集完整度和Token成本）
-- `TEMPERATURE = 0.7` — 对话生成温度（医生诊断阶段内部设为0.3以提高稳定性）
-- `PATIENT_EMOTIONS` — 可用的情绪类型字典（5种，可按需增减或修改行为描述）
+</details>
 
 ## 2.3 准备数据
-确保以下数据文件存在于 `data/` 目录下：
 
-| 文件 | 必需 | 说明 |
-| ------ | ------ | ------ |
-| `data/rare_disease_302.json` | 是 | 罕见病数据集（302个案例），MedRBench格式 |
-| `data/nejmai_dataset.csv` | 是 | NEJM AI影像挑战数据集（48例，5选1） |
-| `data/usmle_and_derm_dataset.csv` | 否 | USMLE及皮肤科数据集（200+例，4选1） |
-| `data/MedRBench/` | 否 | 扩展数据集（诊断957例 + 治疗496例，PMC来源） |
+| 文件 | 必须 | 说明 |
+|------|:---:|------|
+| `data/rare_disease_302.json` | ✅ | 罕见病数据集 (302例, MedRBench格式) |
+| `data/nejmai_dataset.csv` | ✅ | NEJM AI 影像挑战 (48例, 5选1) |
+| `data/usmle_and_derm_dataset.csv` | — | USMLE + 皮肤科 (200+例, 4选1) |
+| `data/MedRBench/` | — | 扩展集 (诊断957例 + 治疗496例) |
 
-数据格式要求（以NEJM AI CSV为例）：
-| case_id | case_vignette | choice_1 | choice_2 | choice_3 | choice_4 | choice_5 | answer |
-| ------ | ------ | ------ | ------ | ------ | ------ | ------ | ------ |
-| case_1 | A 28-year-old woman presented... | Foreign body granulomatosis | Granulomatosis with polyangiitis | Pulmonary alveolar proteinosis | Pulmonary Langerhans cell histiocytosis | Pulmonary Sarcoidosis | Pulmonary Sarcoidosis |
+## 2.4 快速开始
 
-罕见病JSON格式要求（MedRBench格式）：
-```json
-{
-  "Cases": [
-    {
-      "Type": "Rare Disease",
-      "Final Name": "Paracoccidiomycosis",
-      "Initial Presentation": "{\"Clinical Presentation\": \"...\", \"Past Medical History\": \"...\", ...}"
-    }
-  ]
-}
-```
-
-## 2.4 运行单案例演示
 ```bash
+# 🎯 单案例演示 (偏头痛, 测试2种情绪+假症状)
 python main.py
-```
-默认执行 `run_single_case_demo()`，使用硬编码的偏头痛案例（`demo_001`）：
-- 测试 **平和** 和 **焦虑** 两种情绪状态的病人
-- 测试 **添加假症状** 后的诊断效果（LLM生成2个干扰症状）
-- 每轮对话实时打印在控制台（医生/病人交替输出）
-- 最终输出诊断对比：AI诊断 vs 真实诊断 + 正确性判定 + 信心度
+# 约消耗 20K-30K tokens, 2-3 分钟
 
-适合初次使用时的快速验证，单次运行约消耗 20,000-30,000 tokens，耗时约2-3分钟。
-
-## 2.5 运行完整实验
-修改 `main.py` 末尾的 `__name__ == "__main__"` 代码块：
-```python
-if __name__ == "__main__":
-    main()                  # 运行完整实验
-    # run_single_case_demo()  # 运行演示
-```
-然后执行：
-```bash
-python main.py
-```
-完整实验流程（7步）：
-1. **加载数据**：调用 `DataLoader.load_all_datasets()`，加载所有可用数据集
-2. **生成变体**：对NEJM AI前5个案例，通过 `SymptomGenerator` 生成3种数据变体（原始/+假症状/-症状）
-3. **原始数据测试**：前3个案例 × 3种情绪（calm/anxious/distrustful）= 9组对话
-4. **假症状测试**：前3个案例 × 2种情绪（calm/anxious）= 6组对话
-5. **缺失症状测试**：前3个案例 × 2种情绪（calm/anxious）= 6组对话
-6. **评估报告**：`Evaluator` 计算所有指标 + 生成3幅可视化图表 + CSV汇总表
-7. **性能统计**：`PerformanceTracker` 输出Token/时间/API调用的全量统计
-
-完整实验预计消耗约 500,000-1,200,000 tokens，耗时约1-2.5小时（取决于API响应速度）。
-
-## 2.6 仅生成假数据（step1管线）
-如果只需要预处理数据（不运行完整实验），可使用step1两阶段管线：
-```bash
-# 第一步：生成假症状数据集（离线预处理）
-python step1/step1_1.py
-# 输出: data/generation_data/fake_data.json
-# 内容: {original: [...], with_fake_symptoms: [...], with_missing_symptoms: [...]}
-
-# 第二步：基于假数据进行批量问诊和评估
-python step1/step1_2.py
-# 输出: results/evaluations/evaluation_report_{timestamp}.json
-#       results/performance/performance_report_{timestamp}.json
-#       results/accuracy_by_emotion.png
-#       results/accuracy_by_modification.png
-#       results/overall_metrics_radar.png
-#       results/summary_statistics.csv
-```
-此管线适合迭代式开发：先调整假症状生成策略 → 保存JSON → 多次以不同参数运行step1_2进行评估对比。
-
-## 2.7 副球孢子菌病专项测试
-```bash
+# 🧪 副球孢子菌病专项测试 (南美地方真菌病)
 python test_optimized.py
-```
-针对副球孢子菌病（Paracoccidiomycosis，一种南美地方性真菌病）的聚焦测试：
-- 从罕见病数据集中筛选所有副球孢子菌病病例
-- 使用 **平和** 和 **焦虑** 两种情绪分别测试
-- 识别AI医生是否能正确建立"巴西移民 → 南美地方真菌病"的流行病学关联
-- 预期准确率阈值50%，低于此值则提示需要优化医生提示词中的地理流行病学部分
 
+# 🔬 完整实验 (5病例 × 3情绪 × 3数据变体)
+# 修改 main.py: main() 替代 run_single_case_demo()
+python main.py
+# 约消耗 500K-1200K tokens, 1-2.5 小时
+```
+
+<details>
+<summary>📦 step1 离线预处理管线</summary>
+
+```bash
+# 第一步: 生成假症状数据集
+python step1/step1_1.py
+# ➜ data/generation_data/fake_data.json
+
+# 第二步: 基于假数据批量问诊+评估
+python step1/step1_2.py
+# ➜ results/evaluations/ + performance/ + 3图 + CSV
+```
+
+> 适合迭代开发：调整假症状策略 → 保存 JSON → 多次运行 step1_2
+
+</details>
+
+---
 
 # 3 实验设计
+
 ## 3.1 实验变量
-本项目设计了两个核心实验变量（自变量），以评估AI医生在不同条件下的诊断鲁棒性：
 
-### 自变量1：病人情绪状态
-| 变量值 | 中文描述 | 核心行为特征 |
-| ------ | ------ | ------ |
-| `calm` | 平和 | 清晰有条理、配合医生、主动提供信息 |
-| `anxious` | 焦虑 | 说话急促、反复强调担忧、询问是否严重、表现恐惧 |
-| `distrustful` | 不信任 | 质疑问题目的、不愿透露信息、挑战专业性 |
-| `confused` | 困惑 | 描述模糊、信息矛盾、需反复解释 |
-| `aggressive` | 激动 | 语气激动、抱怨服务、要求立即诊断、威胁投诉 |
+本项目设计了两个核心自变量，采用**全因子交叉设计**：
 
-### 自变量2：数据完整性
-| 变量值 | 说明 | 实现方式 |
-| ------ | ------ | ------ |
-| `original` | 原始完整数据 | 直接使用数据集中的原始症状列表 |
-| `fake_symptoms_added` | 添加假症状 | LLM生成2个诊断无关但临床合理的干扰症状 | 
-| `symptoms_removed` | 删除部分症状 | 随机删除30%的真实症状（至少保留1个） |
+<table>
+<tr><th colspan="2"><b>🧪 自变量 1: 病人情绪状态</b></th></tr>
+<tr>
+  <td width="50%">
 
-### 实验矩阵（全因子交叉设计）
+| 变量值 | 描述 | 核心行为 |
+|:---:|------|------|
+| `calm` | 😊 平和 | 清晰有条理、主动配合 |
+| `anxious` | 😰 焦虑 | 急促紧张、反复强调担忧 |
+| `distrustful` | 🤨 不信任 | 质疑问题、挑战专业性 |
+
+  </td>
+  <td width="50%">
+
+| 变量值 | 描述 | 核心行为 |
+|:---:|------|------|
+| `confused` | 😵 困惑 | 描述模糊、信息矛盾 |
+| `aggressive` | 😡 激动 | 语气激烈、要求立即诊断 |
+
+  </td>
+</tr>
+</table>
+
+<table>
+<tr><th colspan="2"><b>🧪 自变量 2: 数据完整性</b></th></tr>
+<tr>
+  <td>
+
+| 变量值 | 说明 | 实现 |
+|:---:|------|------|
+| `original` | 📝 原始完整 | 直接使用数据集症状列表 |
+| `fake_symptoms_added` | ➕ 添加假症状 | LLM 生成 2 个干扰症状 |
+| `symptoms_removed` | ➖ 删除症状 | 随机删除 30% (至少保留1个) |
+
+  </td>
+</tr>
+</table>
+
+### 实验矩阵
+
 ```
                      calm    anxious    distrustful    confused    aggressive
 original              ✓         ✓            ✓           —            —
 fake_symptoms_added   ✓         ✓            —           —            —
 symptoms_removed      ✓         ✓            —           —            —
 ```
-首轮实验聚焦 `calm × anxious × distrustful` 与 `original × fake × missing` 的核心交叉（21组/轮），后续可扩展至5×3全因子（15组/病例）。
 
-## 3.2 数据集说明
-实验中使用的病例覆盖以下疾病类型：
+> 首轮聚焦核心交叉 (21组/轮)，后续可扩展至 5×3 = 15组/病例 全因子
 
-| 病例ID | 疾病 | 类型 | 关键特征 |
-| ------ | ------ | ------ | ------ |
-| case_1 | Pulmonary Sarcoidosis（肺结节病） | 呼吸/免疫 | 非干酪性肉芽肿，需排除结核和真菌感染 |
-| case_4 | Vertical Nystagmus（垂直眼震） | 神经/眼科 | 体检发现而非主诊断，需从"最不可能"选项中识别 |
-| case_6 | Paracoccidiomycosis（副球孢子菌病） | 感染（地方真菌） | 南美巴西流行病学史是关键诊断线索 |
-| case_7 | Exogenous Ochronosis（外源性褐黄病） | 皮肤 | 氢醌美白霜使用史是唯一诊断线索 |
-| case_8 | （皮肤科案例） | 皮肤 | 无症状皮疹，需鉴别多种皮肤病 |
+---
 
-> 病例选择策略：覆盖呼吸/神经/感染/皮肤四大系统，包含常见鉴别诊断（结节病vs结核）和罕见地方病（副球孢子菌病），以测试AI医生的知识广度和流行病学推理能力。
+## 3.2 实验病例
 
-## 3.3 17维评估体系
-评估分为三大维度，覆盖诊断质量、问诊过程质量、人文关怀三个方面：
+| ID | 🏥 疾病 | 🏷️ 类型 | 🔑 关键诊断线索 |
+|:---:|------|:---:|------|
+| case_1 | Pulmonary Sarcoidosis | 呼吸/免疫 | 非干酪性肉芽肿，须排除结核和真菌感染 |
+| case_4 | Vertical Nystagmus | 神经/眼科 | 饮酒+晕倒+眼部受压3小时→排除型题目 |
+| case_6 | Paracoccidiomycosis | 感染(地方真菌) | 🇧🇷 巴西移民史是关键流行病学线索 |
+| case_7 | Exogenous Ochronosis | 皮肤 | 氢醌美白霜使用史是唯一诊断线索 |
+| case_8 | (皮肤科案例) | 皮肤 | 无症状皮疹，需鉴别多种皮肤病 |
 
-### 诊断的角度（7维）
-| 序号 | 评估维度 | 评分标准 |
-| ------ | ------ | ------ |
-| 1 | 诊断准确性 | 5分-完全准确（含同义词）；1分-完全不正确 |
-| 2 | 诊断逻辑清晰性 | 5分-推理链条非常清晰；1分-逻辑非常不清晰 |
-| 3 | 诊断逻辑充分性 | 5分-推理足以支撑结论；1分-推理极不充分 |
-| 4 | 诊断危害性（反向） | 5分-完全无害；1分-错误诊断存在极大危害 |
-| 5 | 循证医学证据 | 5分-完全依据循证医学；1分-完全无医学证据 |
-| 6 | 诊断逻辑完整性 | 5分-使用了所有相关症状/体征/检查；1分-完全遗漏 |
-| 7 | 诊断逻辑可读性 | 5分-可读性非常好；1分-可读性非常差 |
+> 📋 选取策略：覆盖呼吸/神经/感染/皮肤四大系统，含常见鉴别诊断 + 罕见地方病
 
-### 问诊的过程（5维）
-| 序号 | 评估维度 | 评分标准 |
-| ------ | ------ | ------ |
-| 8 | 问诊完整性 | 5分-包含了所有诊断重要信息；1分-完全未包含 |
-| 9 | 交流质量 | 5分-全程无专业术语，患者可听懂；1分-全程医学术语 |
-| 10 | 上下文质量 | 5分-对话连贯性非常好；1分-质量非常差 |
-| 11 | 指令跟随 | 5分-所有回答针对患者问题；1分-完全答非所问 |
-| 12 | 解答患者问题 | 5分-解决所有患者疑问；1分-完全未解决 |
+---
 
-### 人文关怀-共情（5维）
-| 序号 | 评估维度 | 评分标准 |
-| ------ | ------ | ------ |
-| 13 | 以患者为中心的沟通 | 5分-完全以患者为中心；1分-完全不以患者为中心 |
-| 14 | 尊重陈述和隐私 | 5分-完全尊重；1分-完全不尊重 |
-| 15 | 语言恰当性 | 5分-非常恰当；1分-非常不恰当 |
-| 16 | 解决患者担忧 | 5分-尽最大努力解决；1分-完全未试图解决 |
-| 17 | 人文关怀表达 | 5分-极致人文关怀；1分-完全无关怀 |
+## 3.3 17 维评估体系
 
-> 注：当前代码中实现了诊断正确性的自动评估（模糊匹配算法），17维详细评分体系的提示词定义在 `prompts_revised.py` 中（含完整评分格式模板），尚未完全集成到 `evaluator.py` 的自动评分管线中，目前需要LLM辅助逐维打分。
+<table>
+<tr><th colspan="2">🩺 诊断质量 (7维)</th></tr>
+<tr><td width="50%">
 
-## 3.4 诊断正确性判定算法
-`_evaluate_diagnosis()` 的核心实现逻辑（位于 `conversation_manager.py` 第135-203行）：
+| # | 维度 | 5分 ↔ 1分 |
+|:---:|------|------|
+| 1 | 诊断准确性 | 完全准确 ↔ 完全不正确 |
+| 2 | 诊断逻辑清晰性 | 非常清晰 ↔ 很不清晰 |
+| 3 | 诊断逻辑充分性 | 足够支撑结论 ↔ 极不充分 |
+| 4 | 诊断危害性(反向) | 完全无害 ↔ 极大危害 |
+
+</td><td width="50%">
+
+| # | 维度 | 5分 ↔ 1分 |
+|:---:|------|------|
+| 5 | 循证医学证据 | 完全循证 ↔ 无证据 |
+| 6 | 诊断逻辑完整性 | 使用所有相关特征 ↔ 完全遗漏 |
+| 7 | 诊断逻辑可读性 | 极好 ↔ 极差 |
+
+</td></tr>
+</table>
+
+<table>
+<tr><th colspan="2">💬 问诊过程 (5维)</th></tr>
+<tr><td width="50%">
+
+| # | 维度 | 5分 ↔ 1分 |
+|:---:|------|------|
+| 8 | 问诊完整性 | 覆盖所有重要信息 ↔ 完全未覆盖 |
+| 9 | 交流质量 | 无专业术语群众可理解 ↔ 全是术语 |
+| 10 | 上下文质量 | 对话连贯性极好 ↔ 极差 |
+
+</td><td width="50%">
+
+| # | 维度 | 5分 ↔ 1分 |
+|:---:|------|------|
+| 11 | 指令跟随 | 完全针对患者问题 ↔ 答非所问 |
+| 12 | 解答患者问题 | 解决所有疑问 ↔ 完全未解决 |
+
+</td></tr>
+</table>
+
+<table>
+<tr><th colspan="2">❤️ 人文关怀 (5维)</th></tr>
+<tr><td width="50%">
+
+| # | 维度 | 5分 ↔ 1分 |
+|:---:|------|------|
+| 13 | 以患者为中心的沟通 | 完全 ↔ 完全不以 |
+| 14 | 尊重陈述和隐私 | 完全尊重 ↔ 完全不尊重 |
+| 15 | 语言恰当性 | 非常恰当 ↔ 非常不恰当 |
+
+</td><td width="50%">
+
+| # | 维度 | 5分 ↔ 1分 |
+|:---:|------|------|
+| 16 | 解决患者担忧 | 尽力解决 ↔ 完全未试图 |
+| 17 | 人文关怀表达 | 极致关怀 ↔ 完全无关怀 |
+
+</td></tr>
+</table>
+
+> ℹ️ 当前代码实现了诊断正确性自动评估 (模糊匹配)，17 维完整评分的提示词定义在 `prompts_revised.py`，尚未完全集成自动评分管线
+
+---
+
+## 3.4 诊断判定算法
 
 ```
-输入: predicted (AI诊断文本), actual (金标准诊断文本)
-输出: True/False
+输入: predicted (AI诊断) vs actual (金标准)
+输出: ✅ True / ❌ False
 
-算法流程:
-1. 空值检测: if predicted or actual is None/empty → return False
-2. 直接匹配: if actual in predicted or predicted in actual (双向) → return True
-3. 映射表匹配: 遍历18组 disease_mappings
-   ├── 正向: actual中的英文病名 → predicted中是否含对应中文别名
-   └── 反向: actual中的中文病名 → predicted中是否含对应英文病名
-4. 关键词交叉: predicted_words ∩ actual_words / |actual_words| > 0.3 → return True
-5. 医学词汇跨语言匹配: 遍历9组 medical_keywords
-   └── actual英文词 → predicted中文词 (如 "lung"↔"肺", "eye"↔"眼")
-6. 以上均不满足 → return False
+① 空值检测 ──▶ predicted 或 actual 为空 → False
+② 直接匹配 ──▶ 双向子串包含 → True
+③ 映射表匹配 ─▶ 18组中英疾病名互查 (正向+反向)
+④ 关键词交叉 ─▶ 交集比 > 30% → True
+⑤ 跨语言匹配 ─▶ 9组医学词 (lung↔肺, eye↔眼, …)
+⑥ 兜底 ─────▶ False
 ```
 
-映射表覆盖范围：
-- **呼吸系统**：Pulmonary Sarcoidosis ↔ 肺结节病/结节病/肉芽肿/慢性支气管炎/肺炎/呼吸系统疾病
-- **真菌感染**：Paracoccidioidomycosis ↔ 副球孢子菌病/南美芽生菌病/真菌感染/深部真菌病/PCM
-- **眼科**：Vertical Nystagmus ↔ 垂直眼震/眼震/眼球震颤/视神经炎/结膜炎/眼部疾病/多发性硬化
-- **皮肤**：Exogenous Ochronosis、Lymphoma、Thyroiditis、Conjunctivitis、Allergy、Fungal Infection等
-- **通用医学词汇**：lung↔肺/呼吸、eye↔眼/视力、throat↔喉/咽、skin↔皮肤/皮疹、fever↔发热/发烧等
+<details>
+<summary>📋 映射表覆盖范围 (点击展开)</summary>
 
+| 系统 | 英文 | ↔ 中文别名 |
+|------|------|------|
+| 呼吸 | Pulmonary Sarcoidosis | 肺结节病 / 结节病 / 肉芽肿 / 慢性支气管炎 / 肺炎 |
+| 真菌 | Paracoccidioidomycosis | 副球孢子菌病 / 南美芽生菌病 / 深部真菌病 / PCM |
+| 眼科 | Vertical Nystagmus | 垂直眼震 / 眼震 / 眼球震颤 / 视神经炎 / 多发性硬化 |
+| 皮肤 | Exogenous Ochronosis | 外源性褐黄病 |
+| 肿瘤 | Lymphoma | 淋巴瘤 / 恶性淋巴瘤 / 血液系统疾病 |
+| 内分泌 | Thyroiditis | 甲状腺炎 / 甲状腺疾病 |
+| 通用 | lung, eye, throat, skin, fever, cough, pain, swelling | 跨语言 9 组 |
+
+</details>
+
+---
 
 # 4 实验结果与分析
+
 ## 4.1 实验概览
-共计完成 **3轮独立实验**（2025年7月29-30日），每轮21组对话（5个病例 × 3-5种情绪 × 3种数据变体的部分组合），累计生成 **98个对话JSON文件** 和 **7份评估报告**。
 
-| 实验轮次 | 评估报告文件 | 对话数 | 整体准确率 | 平均信心度 | 平均轮数 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| Round 1 | `evaluation_report_20250729_190127.json` | 21 | 28.57% | 81.67% | 9.67 |
-| Round 2 | `evaluation_report_20250730_014127.json` | 21 | 33.33% | 84.76% | 10.00 |
-| Round 3 | `evaluation_report_20250730_131915.json` | 21 | 42.86% | 85.48% | 9.43 |
-| **汇总** | — | **63+** | **34.92%（均值）** | **83.97%（均值）** | **9.70** |
+> 🧪 共计 **3 轮独立实验** · 63+ 组对话 · **98 个对话 JSON** · **7 份评估报告**
 
-> Round 1-3之间存在提示词的迭代优化（特别是医生系统提示词中地理流行病学和VINDICATE框架的措辞调整），准确率呈上升趋势（28.57%→33.33%→42.86%），表明Prompt Engineering对诊断效果有显著影响。
+| 🏷️ 轮次 | 📄 评估报告 | 📊 对话数 | 🎯 准确率 | 💭 平均信心度 | 🔄 平均轮数 |
+|:---:|------|:---:|:---:|:---:|:---:|
+| R1 | `evaluation_report_20250729_190127.json` | 21 | 28.57% | 81.67% | 9.67 |
+| R2 | `evaluation_report_20250730_014127.json` | 21 | 33.33% | 84.76% | 10.00 |
+| R3 | `evaluation_report_20250730_131915.json` | 21 | **42.86%** | 85.48% | 9.43 |
+| **∑** | — | **63+** | **34.92%** | **83.97%** | **9.70** |
 
-## 4.2 整体指标（以表现最好的Round 3为例）
+```
+准确率趋势:  R1 ████████████░░░░░░░░░░░░░░ 28.57%
+             R2 ████████████████░░░░░░░░░░░░ 33.33%  (+4.76%)
+             R3 ███████████████████░░░░░░░░░░ 42.86%  (+9.53%)  ← 提示词优化驱动
+```
 
-| 指标 | 值 | 说明 |
-| ------ | ------ | ------ |
-| 准确率 (Accuracy) | 42.86% (9/21) | AI医生正确诊断的比例 |
-| 平均问诊轮数 | 9.43 ± 1.26 | 接近上限10轮，提示信息收集效率待优化 |
-| 平均医生信心度 | 85.48% ± 1.47% | 医生对自身诊断的置信度 |
-| 信心度-准确率偏差 | **+42.62%** | 严重过度自信（模型校准问题） |
-| 总Token消耗 | 1,114,324 | 21次问诊的总token量 |
-| 总耗时 | 9,045.7秒 (2.51小时) | API响应时间 |
-| 总API调用 | 434次 | doctor=231次, patient=203次（约20.7次/对话） |
-| 平均每对话Token | 53,063 | 约50K tokens/对话 |
-| 处理速度 | 123.2 tokens/s | 整体吞吐量 |
+---
+
+## 4.2 整体指标 (最佳轮次 R3)
+
+| 📊 指标 | 🔢 值 | 💡 解读 |
+|:---|:---:|------|
+| **准确率** | **42.86%** (9/21) | AI 医生正确诊断比例 |
+| 平均问诊轮数 | 9.43 ± 1.26 | 接近上限 10 轮，信息收集效率待优化 |
+| 平均信心度 | 85.48% ± 1.47% | 医生对自身诊断高度自信 |
+| ⚠️ 信心度-准确率偏差 | **+42.62%** | **严重过度自信 (模型校准问题)** |
+| 总 Token | 1,114,324 | 21 次问诊总量 |
+| 总耗时 | 9,045.7s (2.51h) | API 响应时间 |
+| 总 API 调用 | 434 次 | Doctor=231 · Patient=203 (约20.7次/对话) |
+| 每对话 Token | 53,063 | ~50K tokens/对话 |
+| 处理速度 | 123.2 t/s | 整体吞吐量 |
+
+---
 
 ## 4.3 情绪维度分析
-### Round 3（最佳轮次）按情绪分组：
 
-| 情绪 | 准确率 | 样本数 | 正确数 | 趋势 |
-| ------ | ------ | ------ | ------ | ------ |
-| `calm` 平和 | 33.33% | 9 | 3 | ⬇ 低于平均 |
-| `anxious` 焦虑 | 44.44% | 9 | 4 | ➡ 接近平均 |
-| `distrustful` 不信任 | 66.67% | 3 | 2 | ⬆ 显著高于平均 |
+<table>
+<tr>
+  <td width="50%">
 
-### 三轮实验情绪维度对比：
+### R3 按情绪分组
 
-| 情绪 | Round 1 | Round 2 | Round 3 | 均值 | 趋势 |
-| ------ | ------ | ------ | ------ | ------ | ------ |
-| `calm` | 11.11% | 44.44% | 33.33% | **29.63%** | 波动大，整体偏低 |
-| `anxious` | 33.33% | 22.22% | 44.44% | **33.33%** | 中等且稳定 |
-| `distrustful` | 66.67% | 33.33% | 66.67% | **55.56%** | 波动但最高 |
+| 😊 情绪 | 🎯 准确率 | 📊 n | ✅ |
+|:---:|:---:|:---:|:---:|
+| `calm` 平和 | 33.33% | 9 | 3 |
+| `anxious` 焦虑 | 44.44% | 9 | 4 |
+| `distrustful` 不信任 | **66.67%** | 3 | 2 |
 
-**核心发现**：不信任（distrustful）病人的诊断准确率最高（三轮均值55.56%），显著高于平和病人（29.63%）。可能原因：不信任病人的质疑行为迫使医生更谨慎、更系统地提问，从而获取了更完整的病史信息。这一发现与直觉相反（预期难沟通的患者会降低准确率），提示"适度的患者质疑"可能反而提升诊断质量。
+  </td>
+  <td width="50%">
+
+### 三轮情绪对比
+
+| 😊 情绪 | R1 | R2 | R3 | **μ** |
+|:---:|:---:|:---:|:---:|:---:|
+| `calm` | 11% | 44% | 33% | **29.63%** |
+| `anxious` | 33% | 22% | 44% | **33.33%** |
+| `distrustful` | 67% | 33% | 67% | **55.56%** ⬆ |
+
+  </td>
+</tr>
+</table>
+
+> 🔍 **反直觉发现**：不信任病人准确率最高 (55.56%)，比平和病人高 **+26pp**！质疑行为迫使医生更系统地问诊 → 获取更完整病史。提示"适度患者质疑"可能提升诊断质量。
+
+---
 
 ## 4.4 数据完整性维度分析
-### Round 3 按数据变体分组：
 
-| 数据变体 | 准确率 | 样本数 | 正确数 |
-| ------ | ------ | ------ | ------ |
-| `original` 原始数据 | 44.44% | 9 | 4 |
-| `fake_symptoms_added` 添加假症状 | 50.00% | 6 | 3 |
-| `symptoms_removed` 删除症状 | 33.33% | 6 | 2 |
+<table>
+<tr>
+  <td width="50%">
 
-### 三轮实验数据变体维度对比：
+### R3 按数据变体
 
-| 数据变体 | Round 1 | Round 2 | Round 3 | 均值 |
-| ------ | ------ | ------ | ------ | ------ |
-| `original` | 33.33% | 33.33% | 44.44% | **37.04%** |
-| `fake_symptoms_added` | 16.67% | 33.33% | 50.00% | **33.33%** |
-| `symptoms_removed` | 33.33% | 33.33% | 33.33% | **33.33%** |
+| 📝 数据变体 | 🎯 准确率 | n |
+|:---|:---:|:---:|
+| `original` | 44.44% | 9 |
+| `fake_symptoms_added` | **50.00%** | 6 |
+| `symptoms_removed` | 33.33% | 6 |
 
-**核心发现**：
-- 添加假症状的准确率（33.33%）与基线（37.04%）差距不大，表明AI医生具有一定抗干扰能力，但Round 1极低（16.67%）说明效果不稳定
-- 症状删除的准确率稳定在33.33%（三轮完全一致），说明信息缺失是一个硬性瓶颈，难以通过提示词优化弥补
-- Round 3中假症状组准确率（50%）反而高于原始组（44.44%），可能因为假症状促使医生更仔细地鉴别诊断
+  </td>
+  <td width="50%">
+
+### 三轮数据变体对比
+
+| 📝 类型 | R1 | R2 | R3 | **μ** |
+|:---|:---:|:---:|:---:|:---:|
+| `original` | 33% | 33% | 44% | **37.04%** |
+| `fake_symptoms_added` | 17% | 33% | 50% | **33.33%** |
+| `symptoms_removed` | 33% | 33% | 33% | **33.33%** |
+
+  </td>
+</tr>
+</table>
+
+> 🔍 **关键洞察**：① 假症状干扰有限 (33.33% vs 基线37.04%) — AI有一定抗干扰力 ② 症状删除**三轮完全相同** (33.33%) — 信息缺失是硬性瓶颈 ③ R3 假症状组 (50%) 反超原始组 — 干扰促使医生更仔细鉴别
+
+---
 
 ## 4.5 案例级错误分析
-### case_1（肺结节病）— 最高误诊率病例
-真实诊断：**Pulmonary Sarcoidosis**
 
-| 误诊为 | 出现次数（跨三轮） | 错误类型 |
-| ------ | ------ | ------ |
-| 副球孢子菌病 (Paracoccidiomycosis) | 3次 | 混淆肉芽肿性疾病（结节病↔真菌感染） |
-| 肺结核 (TB) | 2次 | 混淆肉芽肿性疾病（干咳+淋巴结肿大→误判感染） |
-| 过敏性咳嗽/哮喘/过敏 | 2次 | 症状表面化（仅关注咳嗽，忽略多系统表现） |
-| 胃食管反流病 (GERD) | 1次 | 假症状误导（添加喉咙不适等假症状后诊断跑偏） |
-| 慢性阻塞性肺病 (COPD) | 1次 | 咳嗽长期化+体重下降→误判COPD |
-| 干燥综合征 (Sjögren's) | 1次 | 假症状误导（添加口干眼干等假症状后诊断跑偏） |
-| 系统性红斑狼疮 (SLE) | 1次 | 多系统症状→误判自身免疫病 |
-| 结缔组织病 | 1次 | 同上 |
+### 🔴 case_1 — 肺结节病 (最高误诊率: 3/21 正确 = 14.3%)
 
-**分析**：肺结节病（Pulmonary Sarcoidosis）是实验中最"难"的病例——21次测试中仅3次正确（准确率14.3%）。AI医生反复将其误诊为感染（结核/真菌）或自身免疫病，暴露了LLM在**非干酪性肉芽肿**这一病理特征上的知识盲区。更关键的是，AI医生未能有效追问"是否有过活检"这一结节病确诊的金标准信息。
+<table>
+<tr><th>误诊为</th><th>次数</th><th>错误类型</th></tr>
+<tr><td>🦠 副球孢子菌病 (Paracoccidiomycosis)</td><td align="center">3</td><td>混淆肉芽肿性疾病</td></tr>
+<tr><td>🫁 肺结核 (TB)</td><td align="center">2</td><td>干咳+淋巴结肿大→误判感染</td></tr>
+<tr><td>🤧 过敏性咳嗽 / 哮喘 / 过敏</td><td align="center">2</td><td>仅关注咳嗽，忽略多系统表现</td></tr>
+<tr><td>🫗 胃食管反流 (GERD)</td><td align="center">1</td><td>假症状误导 (喉咙不适)</td></tr>
+<tr><td>🫁 COPD</td><td align="center">1</td><td>咳嗽+体重下降→误判COPD</td></tr>
+<tr><td>🦋 干燥综合征 (Sjögren's)</td><td align="center">1</td><td>假症状误导 (口干眼干)</td></tr>
+<tr><td>🦋 系统性红斑狼疮 (SLE)</td><td align="center">1</td><td>多系统症状→自身免疫病</td></tr>
+<tr><td>🧬 结缔组织病</td><td align="center">1</td><td>同上</td></tr>
+</table>
 
-### case_4（垂直眼震）— 眼科诊断系统性偏差
-真实诊断：**Vertical Nystagmus**（题目要求选择"最不可能"的体检发现）
+> 💡 **根因**：LLM 在**非干酪性肉芽肿**这一病理特征上有知识盲区；未追问"是否有过活检"(结节病确诊金标准)
 
-| 误诊为 | 出现次数 |
-| ------ | ------ |
-| 青光眼 | 5次 |
-| 干眼症 | 1次 |
-| 视网膜脱离 | 1次 |
-| 结核病 | 1次 |
-| 缺血性视网膜病变 | 1次 |
+### 🟡 case_4 — 垂直眼震 (16.7% 准确率)
 
-**分析**：垂直眼震的准确率约16.7%（1/6，按原始数据计）。AI医生普遍将视力下降+疼痛的症状组合误判为青光眼（5次），说明LLM倾向于匹配"最常见"的眼科诊断而非结合完整病史（饮酒+晕倒+眼部受压3小时）进行推理。此题本质是"最不可能"的排除型题目，AI在理解题目意图方面存在根本性困难。
+| 误诊为 | 次数 | 分析 |
+|------|:---:|------|
+| 👁️ 青光眼 | **5** | LLM 倾向匹配"最常见"眼科诊断 |
+| 👁️ 干眼症 / 视网膜脱离 / 结核 / 缺血性病变 | 各1 | 忽略完整病史 (饮酒+晕倒+受压3h) |
 
-### case_6（副球孢子菌病）— 地理线索利用不足
-真实诊断：**Paracoccidiomycosis**
+> 💡 **根因**：此题是"最不可能"排除型题目，AI 在理解题目意图方面存在根本性困难
 
-| 误诊为 | 出现次数 |
-| ------ | ------ |
-| 传染性单核细胞增多症 | 1次 |
-| 颈部淋巴结炎 | 1次 |
-| 甲状腺功能亢进 (Graves病) | 1次 |
+### 🟢 case_6 — 副球孢子菌病 (准确率最高，原始数据 3/3 正确)
 
-**分析**：case_6的准确率最高（原始数据中3/3正确，但在症状扰动组中出现了3次误诊），提示AI医生在**信息完整时**能正确利用"巴西移民+发热+淋巴结肿大+体重下降"的流行病学线索。但在患者Agent行为异常时（如反复返回空内容、给出医疗建议而非患者口吻），医生无法获取关键信息，导致误诊。
+| 误诊为 | 次数 | 分析 |
+|------|:---:|------|
+| 🦠 传染性单核细胞增多症 | 1 | 症状扰动组 |
+| 🦠 颈部淋巴结炎 | 1 | 症状扰动组 |
+| 🦋 Graves 病 (甲亢) | 1 | 症状扰动组 |
 
-## 4.6 患者Agent行为分析
-通过对98个对话文件的行为审计，发现PatientAgent存在以下行为模式：
+> 💡 **关键**：信息完整时，AI 能正确利用"🇧🇷 巴西移民 + 发热 + 淋巴结肿大 + 体重下降"的流行病学线索。信息缺失或干扰时则失败
 
-### 行为异常类型
-| 异常类型 | 出现频率 | 典型表现 |
-| ------ | ------ | ------ |
-| 空内容回复 | ~15%的轮次 | LLM返回空字符串，触发fallback默认回应 |
-| 角色崩坏（医学术语） | ~8%的轮次 | 病人突然用专业术语分析自身病情（如"这可能与角膜问题有关"） |
-| 信息过度披露 | ~10%的轮次 | 一次性说出3-5个症状，违反"逐步透露"指令 |
-| 重复性回应 | ~12%的轮次 | 重复之前已说过的内容，没有针对医生新问题回答 |
-| 正常回应 | ~55%的轮次 | 符合设定的情绪+信息约束 |
+---
 
-### 异常对诊断的影响
-- **空内容回复**：医生在得不到回答时通常会重新提问（浪费1轮），或基于已有信息仓促诊断
-- **角色崩坏**：病人给出"医学分析"而非"症状描述"，可能误导医生（因为医生可能认为这位患者有医学背景而调整问诊策略）
-- **行为不稳定性**：Llama-3.3-70B在长对话（7-10轮）中角色保持能力明显下降，异常率从前3轮的~10%上升到后3轮的~35%
+## 4.6 患者 Agent 行为分析
+
+通过对 **98 个对话文件** 的行为审计：
+
+<table>
+<tr><th>📊 行为类型</th><th>📈 频率</th><th>📝 典型表现</th><th>⚠️ 影响</th></tr>
+<tr><td>✅ 正常回应</td><td align="center"><b>~55%</b></td><td>符合情绪+信息约束</td><td>—</td></tr>
+<tr><td>🫥 空内容回复</td><td align="center">~15%</td><td>LLM 返回空 → fallback</td><td>浪费 1 轮，医生被迫重问或仓促诊断</td></tr>
+<tr><td>🔄 重复性回应</td><td align="center">~12%</td><td>重复旧内容，不针对新问题</td><td>信息收集停滞</td></tr>
+<tr><td>📢 信息过度披露</td><td align="center">~10%</td><td>一次说 3-5 个症状</td><td>违反"逐步透露"，模拟真实性下降</td></tr>
+<tr><td>🤖 角色崩坏</td><td align="center">~8%</td><td>用医学术语分析病情</td><td>误导医生调整策略</td></tr>
+</table>
+
+> ⚠️ **不稳定性**：Llama-3.3-70B 在 7-10 轮长对话中角色保持能力显著下降，异常率前3轮 ~10% → 后3轮 ~35%
+
+---
 
 ## 4.7 成本与性能分析
-### Token消耗分布（基于21组对话的详细统计）
 
-| 统计项 | 医生 (o3-mini) | 病人 (Llama-3.3-70B) | 合计 |
-| ------ | ------ | ------ | ------ |
-| 总Token | ~580,000 | ~534,000 | 1,114,324 |
+### Token 分布 (21 组对话)
+
+| 📊 | 🩺 Doctor (o3-mini) | 🤒 Patient (Llama) | 📦 合计 |
+|:---|:---:|:---:|:---:|
+| 总 Token | ~580K | ~534K | **1,114,324** |
 | 占比 | 52.1% | 47.9% | 100% |
-| 单次对话均值 | 27,619 | 25,429 | 53,063 |
-| 最大单次消耗 | 50,639 (case_1 calm原) | 47,295 (case_1 calm原) | 97,934 |
-| 最小单次消耗 | 8,514 (case_1 calm缺) | 10,582 (case_1 calm缺) | 19,096 |
+| 均值/对话 | 27,619 | 25,429 | 53,063 |
+| 最大 | 50,639 | 47,295 | 97,934 |
+| 最小 | 8,514 | 10,582 | 19,096 |
 
 ### 耗时分布
-| 统计项 | 医生 | 病人 | 合计 |
-| ------ | ------ | ------ | ------ |
-| 总耗时 | ~5,700s (1.58h) | ~3,350s (0.93h) | 9,045.7s (2.51h) |
-| 单次均值 | 271s | 160s | 431s |
-| 单次API调用耗时 | 22.4s/call | 12.9s/call | — |
 
-> 医生模型（o3-mini）的单次API调用耗时约是病人模型（Llama-3.3-70B）的1.7倍，反映出推理型模型与指令型模型的延迟差异。
+| 📊 | 🩺 Doctor | 🤒 Patient | 📦 合计 |
+|:---|:---:|:---:|:---:|
+| 总耗时 | 5,700s (1.58h) | 3,350s (0.93h) | 9,045.7s (2.51h) |
+| 均值/对话 | 271s | 160s | 431s |
+| 均值/调用 | 22.4s/call | 12.9s/call | — |
 
-### 成本估算（按API公开定价）
-| 模型 | 输入价格 | 输出价格 | 本实验估算成本 |
-| ------ | ------ | ------ | ------ |
-| o3-mini (Azure) | $1.10/1M tokens | $4.40/1M tokens | ~$1.85 |
-| Llama-3.3-70B (Azure MAAS) | $0.71/1M tokens | $0.71/1M tokens | ~$0.76 |
-| DeepSeek-R1-32B (SiliconFlow) | ¥1.00/1M tokens | ¥4.00/1M tokens | ~¥5.00 ($0.69) |
-| **单轮21组实验总成本** | | | **~$3.30** |
-| **单次问诊平均成本** | | | **~$0.16** |
+> o3-mini 调用耗时是 Llama 的 **1.7 倍** — 推理型 vs 指令型模型延迟差异
 
-## 4.8 关键发现与讨论
-### 发现1：过度自信是当前AI医生最突出的可靠性风险
-三轮实验中，AI医生的平均信心度始终维持在82-85%，而实际准确率仅29-43%。这种"信心度-准确率偏差（Confidence-Accuracy Gap）"高达~43个百分点，意味着即使在信息不完整或被干扰的情况下，AI医生也倾向于高估自己的诊断正确性。这一发现在临床安全上值得高度关注——过度自信的AI可能说服医生接受错误诊断。
+### 💰 成本估算
 
-### 发现2：提示词工程是提升准确率的最有效杠杆
-Round 1→Round 3的准确率提升（28.57%→42.86%，相对提升50%）完全来自于医生系统提示词的迭代优化（加强VINDICATE框架描述、增加地方病流行病学线索、降低诊断阶段temperature至0.3），未修改模型或数据。这表明针对性的Prompt Engineering在医学AI场景中具有极高的ROI。
+| 🤖 模型 | 输入价格 | 输出价格 | 本实验成本 |
+|------|:---:|:---:|:---:|
+| o3-mini (Azure) | $1.10/M | $4.40/M | ~$1.85 |
+| Llama-3.3-70B (Azure MAAS) | $0.71/M | $0.71/M | ~$0.76 |
+| DeepSeek-R1 (SiliconFlow) | ¥1.00/M | ¥4.00/M | ~$0.69 |
+| **21 组总成本** | | | **~$3.30** |
+| **单次问诊均成本** | | | **~$0.16** 💸 |
 
-### 发现3：患者信息质量比情绪状态更影响诊断结果
-数据变体（33-37%准确率范围）的方差小于预期，但症状删除的稳定低准确率（3轮均为33.33%）说明：一旦关键症状信息缺失，无论提示词如何优化，诊断正确率都存在硬性天花板。这反向验证了"信息收集的完整性"是诊断质量的第一性原理。
+---
 
-### 发现4：AI医生的鉴别诊断列表不够多样化
-错误分析显示，AI医生在遇到不确定病例时，倾向于选择其在训练数据中见得最多的疾病（如肺部症状→结核/COPD，眼部症状→青光眼），而非基于病例的个性化特征进行推理。这提示当前的LLM在罕见病/非典型表现的诊断上存在"频率偏差（Frequency Bias）"。
+## 4.8 关键发现
 
-### 建议的后续研究方向
-1. **检索增强生成（RAG）**：在诊断阶段接入外部医学知识库（如UpToDate/PubMed），提升罕见病识别能力
-2. **多轮反思机制**：要求医生在给出最终诊断前执行"排除性推理"（rule out top 3 alternatives）
-3. **校准训练**：通过微调或few-shot示例降低模型的过度自信倾向
-4. **患者Agent升级**：改用更强的模型（如GPT-4o）或添加角色一致性检测模块，减少行为异常
-5. **扩展实验规模**：将5种情绪全部纳入，使用所有50+病例进行统计显著性检验
+<table>
+<tr><td>
 
+### 🔴 发现 1: 过度自信
+
+信心度-准确率偏差 **+43pp** (85% vs 42%)。AI 在信息不完整时仍高估自己，存在严重**校准问题**。临床场景中过度自信可能说服医生接受错误诊断。
+
+</td></tr>
+<tr><td>
+
+### 🟡 发现 2: Prompt Engineering 高 ROI
+
+仅通过优化医生提示词 (VINDICATE框架+地理流行病学+t=0.3)，准确率从 28.57% → 42.86% (**相对+50%**)，未改模型或数据。
+
+</td></tr>
+<tr><td>
+
+### 🟢 发现 3: 信息完整性 > 情绪影响
+
+症状删除准确率三轮回合一致 (33.33%) — 关键信息一旦缺失，诊断准确率存在**硬天花板**。验证了"信息收集完整性是诊断第一性原理"。
+
+</td></tr>
+<tr><td>
+
+### 🔵 发现 4: 频率偏差 (Frequency Bias)
+
+AI 倾向诊断常见病：肺部→结核/COPD · 眼部→青光眼。罕见病识别率明显偏低。
+
+</td></tr>
+</table>
+
+### 📌 后续方向
+
+| 🎯 方向 | 💡 方案 |
+|:---|------|
+| 📚 **RAG** | 诊断阶段接入 UpToDate / PubMed，提升罕见病识别 |
+| 🔄 **反思机制** | 最终诊断前执行 "排除 top 3 alternatives" |
+| 🎯 **校准** | 微调或 few-shot 降低过度自信 |
+| 🧠 **患者升级** | 更强模型 (GPT-4o) + 角色一致性检测 |
+| 📈 **扩展规模** | 5 情绪 × 50+ 病例 → 统计显著性检验 |
+
+---
 
 # 5 开发说明
-### 代码架构决策
-- **BaseAgent参数化设计**：通过构造函数注入 `headers` dict 和 `API_URL` 字符串，而非在类内部硬编码。这使得同一套Agent代码可以零修改切换任意LLM供应商（SiliconFlow→Azure→OpenAI→本地Ollama），只需修改 `config.py` 中的配置项
-- **对话状态管理**：每个Agent独立维护 `conversation_history`，通过切片 `[-6:]` 保留最近6轮上下文，平衡了信息完整性与Token成本；医生和病人Agent的历史完全隔离，确保角色独立性
-- **模块化管线**：DataLoader → SymptomGenerator → ConversationManager → Evaluator → PerformanceTracker，每个模块只依赖前一模块的输出格式（List[Dict]），可以独立替换或扩展任一环节
 
-### 医生提示词设计要点
-- **VINDICATE框架嵌入**：将9大病因类别逐一列举在系统提示词中，引导模型系统性覆盖而非散点式提问
-- **地理流行病学专项强化**：明确列出南美/非洲/亚洲的代表性地方病及其对应症状模式（如"南美→发热+淋巴结肿大→副球孢子菌病"），帮助模型建立地理-疾病的因果关联而非仅做模式匹配
-- **Temperature分层**：问诊阶段使用 `TEMPERATURE=0.7`（鼓励多样化提问），诊断阶段内部设为 `0.3`（确保稳定性），实现创造性-稳定性的平衡
+### 🏗️ 代码架构
 
-### 病人提示词设计要点
-- **病例信息作为role而非instruction**：将病例信息放在系统提示词中（而非user消息），确保LLM将其作为身份设定而非任务指令来遵循
-- **双重约束机制**：正向约束（"使用自然语言回答"）+ 反向约束（"没有医学知识，不要杜撰信息，保持在两句话内"），减少角色崩坏概率
-- **地理背景条件注入**：通过 `if 'case_6' in case_id` 条件判断自动向系统提示词注入地理背景，无需在数据预处理阶段修改病例内容
+| 设计决策 | 实现 | 收益 |
+|------|------|------|
+| **BaseAgent 参数化** | `headers` + `API_URL` 注入 | 零修改切换 LLM 供应商 |
+| **对话状态隔离** | Doctor/Patient 独立 `history[-6:]` | 角色独立 · Token成本可控 |
+| **模块化管线** | 每模块只依赖 `List[Dict]` | 任意环节可独立替换/扩展 |
 
-### 诊断评估设计要点
-- **三层递进匹配而非单层精确匹配**：考虑到LLM输出诊断的表述多样性（中文/英文/中英混合/使用别名/仅提上位概念），采用从严格到宽松的三层递进策略，最大程度避免"表述不同但实质正确"的诊断被误判为错误
-- **映射表维护策略**：`disease_mappings` 字典支持动态扩展，每发现一个新的误判（实质正确但被判定错误），将其别名添加到映射表中即可修复，无需修改算法逻辑
+### 🩺 医生提示词
 
-### 日志与可复现性
-- **全量持久化**：每个对话保存为独立JSON文件，文件名包含 case_id + emotion + timestamp 三维标识，支持按任意维度筛选检索
-- **评估报告版本管理**：每轮实验的评估结果独立保存，通过 timestamp 区分，支持跨轮次对比分析
-- **性能细粒度记录**：每次API调用的 Token（prompt/completion/total）、耗时、累计值均记录，支持定位性能瓶颈和分析模型升级的效果
+| 要点 | 策略 |
+|------|------|
+| **VINDICATE 框架** | 9大病因类别逐一列举，引导系统性覆盖 |
+| **地理流行病学** | 南美/非洲/亚洲地方病+症状模式硬编码关联 |
+| **Temperature 分层** | 问诊 0.7 (多样) → 诊断 0.3 (稳定) |
 
+### 🤒 病人提示词
 
-# 6 已知问题
+| 要点 | 策略 |
+|------|------|
+| **病例=身份** | 病例信息放 `system` 而非 `user`，作为角色而非任务 |
+| **双重约束** | 正向 (自然语言) + 反向 (无医学知识/不杜撰/两句话) |
+| **地理注入** | `if 'case_6' in case_id` 自动注入巴西移民背景 |
 
-### 安全类
-1. **API密钥硬编码**：`configs/config.py` 中直接包含了Azure OpenAI和SiliconFlow的API密钥明文，存在泄露风险。当前 `.gitignore` 未排除 `configs/config.py`，若提交到公开仓库将导致密钥泄露。建议迁移到 `.env` 文件并通过 `os.getenv()` 加载，或将 `config.py` 加入 `.gitignore`
+### 📝 日志与可复现
 
-### 代码类
-2. **BaseAgent参数不匹配**：`SymptomGenerator.__init__` 中调用 `BaseAgent(DOCTOR_MODEL, "symptom_generator")` 只传了2个参数，但基类构造函数需要5个参数（`model_name, role, headers, API_URL`），在未修改 `config.py` 中 `DOCTOR_MODEL` 配套 headers 的情况下运行 `generate_fake_symptoms()` 会报 `TypeError`
-3. **数据路径依赖CWD**：`DATA_PATHS` 中的路径使用 `../data/...` 相对路径，依赖于运行时的当前工作目录。在项目子目录（如 `step1/`）或IDE中运行时可能找不到文件，建议统一使用基于 `os.path.dirname(os.path.abspath(__file__))` 的绝对路径
-4. **`.gitignore` 误排除了 `test_*.py`**：`test_optimized.py`（副球孢子菌病专项测试脚本）被gitignore规则意外排除，需手动 `git add -f` 纳入版本控制
+- **全量持久化**：文件名 = `{case_id}_{emotion}_{timestamp}.json`，三维索引
+- **评估版本管理**：每轮实验独立 JSON，跨轮次对比
+- **性能细粒度**：每次 API 调用的 prompt/completion/total token + 耗时 + 累计
 
-### 评估类
-5. **17维评估未完全自动化**：`prompts_revised.py` 中定义了完整的17维评估提示词体系（含角色扮演评估和诊断质量评估），但 `evaluator.py` 当前仅实现了二分类诊断正确性判定。完整17维评分需人工或额外LLM调用完成
-6. **诊断映射表手动维护**：`_evaluate_diagnosis()` 中的 `disease_mappings` 字典（~80行）为手动维护，覆盖病种18组。新增疾病的别名/翻译需手工添加，且映射表本身未做单元测试覆盖
-7. **部分评估存在假阳性**：关键词交叉匹配（阈值30%）和医学词汇跨语言匹配在极端情况下（如"病人说眼睛不舒服，诊断出任何含'眼'字的疾病"）可能产生假阳性判定，需要人工抽检确认
+---
 
-### 模型行为类
-8. **医生诊断过度自信**：三轮实验中信心度-准确率偏差平均达+49%，AI医生倾向于给出85%左右的高置信度即使诊断错误。在临床辅助场景中这是严重的安全隐患
-9. **病人Agent角色保持能力不足**：Llama-3.3-70B在长对话（7-10轮）中异常率从~10%上升到~35%，表现为返回空内容、角色崩坏（给出医学建议）、重复性回应。需考虑更强的患者模型或增加角色一致性自检机制
-10. **AI医生频率偏差（Frequency Bias）**：面对不确定病例时倾向于诊断常见病（青光眼/结核/COPD）而非基于实际证据推理，导致罕见病（肺结节病/副球孢子菌病/垂直眼震）的漏诊率偏高
-
-### 工程类
-11. **空内容处理不完善**：PatientAgent的 `fallback` 机制仅在LLM返回空字符串时触发，但医生Agent没有对应的fallback，当医生返回空内容时会导致对话中断或陷入循环
-12. **JMED数据集加载不稳定**：`load_jmed_data()` 依赖Hugging Face Hub网络连接，国内环境可能需要配置镜像源或使用代理
-13. **大规模实验缺少并行化**：`batch_consultations()` 为串行执行（for循环逐条处理），当实验规模扩展到50病例×5情绪×3变体=750组时，预计耗时约90小时，需引入异步并发或分布式队列
+<p align="center">
+  <br>
+  <sub>📬 如有问题或建议，欢迎提 Issue 或 PR</sub>
+</p>
